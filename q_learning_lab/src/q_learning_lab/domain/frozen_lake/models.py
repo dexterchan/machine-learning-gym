@@ -24,7 +24,7 @@ class Params(NamedTuple):
 
 
 params = Params(
-    total_episodes=2000,
+    total_episodes=200,
     n_max_steps=100,
     learning_rate=0.8,
     gamma=0.95,
@@ -37,6 +37,9 @@ params = Params(
     state_size=None,
     proba_frozen=0.9,
     savefig_folder=Path("_static/img/tutorials/"),
+    start_epsilon = 1.0,  # Starting exploration probability
+    min_epsilon = 0.05,  # Minimum exploration probability
+    decay_rate = 0.001
 )
 
 
