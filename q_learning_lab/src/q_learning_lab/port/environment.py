@@ -4,9 +4,9 @@ from typing import Any
 class Execute_Environment:
     def __init__(self, arena: str):
         if arena == "frozen_lake":
-            from ..adapter.gym.gym_environment import create_frozen_lake_env
+            from ..adapter.gym.gym_environment import Fronzen_Lake_Environment
 
-            self.env = create_frozen_lake_env()
+            self.env = Fronzen_Lake_Environment()
         else:
             raise NotImplementedError("Arena not implemented")
 
@@ -21,9 +21,23 @@ class Execute_Environment:
 
     def close(self):
         self.env.close()
-    
+
     def get_description(self) -> Any:
-        return self.env.desc
+        return self.env.get_description()
+
+    def get_action_space(self) -> Any:
+        return self.env.get_action_space()
+
+    def sample_action_space(self) -> Any:
+        return self.env.sample_action_space()
+
+    @property
+    def observation_space_dim(self) ->  int:
+        return self.env.observation_space_dim
+
+    @property
+    def action_space_dim(self) -> int:
+        return self.env.action_space_dim
 
 
 def create_execute_environment(arena: str) -> Execute_Environment:

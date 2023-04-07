@@ -1,0 +1,7 @@
+ipython
+jupyterlab=3
+nb_conda_kernels 
+black 
+isort
+jupyterlab_code_formatter
+ipywidgets 
