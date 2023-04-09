@@ -6,12 +6,12 @@
 import unittest
 
 from q_learning_lab.port.environment import create_execute_environment
-from logging import getLogger
+from q_learning_lab.utility.logging import get_logger
 from q_learning_lab.domain.q_learn import Agent
-from q_learning_lab.domain.frozen_lake.models import Params, params
+from q_learning_lab.domain.frozen_lake.models import Params
 from pathlib import Path
 
-logger = getLogger(name=__name__)
+logger = get_logger(name=__name__, level="DEBUG")
 
 
 class TestQ_learning_lab(unittest.TestCase):
@@ -82,7 +82,7 @@ class TestQ_learning_lab(unittest.TestCase):
             min_epsilon=self.params.min_epsilon,
             decay_rate=self.params.decay_rate,
         )
-        logger.info(qtable)
+        # logger.info(qtable)
         assert qtable is not None
 
     def test_evaluate(self):
@@ -102,7 +102,7 @@ class TestQ_learning_lab(unittest.TestCase):
             min_epsilon=self.params.min_epsilon,
             decay_rate=self.params.decay_rate,
         )
-        logger.info(qtable)
+        logger.debug(qtable)
         assert qtable is not None
         mean_reward, std_reward = agent.evaluate_agent(
             env=env, Qtable=qtable, n_eval_episodes=10, n_max_steps=100
