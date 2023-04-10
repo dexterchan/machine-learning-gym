@@ -1,12 +1,12 @@
-from typing import Any
+from typing import Any, NamedTuple
 
 
 class Execute_Environment:
-    def __init__(self, arena: str):
+    def __init__(self, arena: str, params: NamedTuple):
         if arena == "frozen_lake":
             from ..adapter.gym.gym_environment import Fronzen_Lake_Environment
 
-            self.env = Fronzen_Lake_Environment()
+            self.env = Fronzen_Lake_Environment(params=params)
         else:
             raise NotImplementedError("Arena not implemented")
 
@@ -32,7 +32,7 @@ class Execute_Environment:
         return self.env.sample_action_space()
 
     @property
-    def observation_space_dim(self) ->  int:
+    def observation_space_dim(self) -> int:
         return self.env.observation_space_dim
 
     @property
@@ -40,5 +40,5 @@ class Execute_Environment:
         return self.env.action_space_dim
 
 
-def create_execute_environment(arena: str) -> Execute_Environment:
-    return Execute_Environment(arena)
+def create_execute_environment(arena: str, params: NamedTuple) -> Execute_Environment:
+    return Execute_Environment(arena=arena, params=params)

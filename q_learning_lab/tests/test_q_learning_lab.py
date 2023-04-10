@@ -10,6 +10,7 @@ from q_learning_lab.utility.logging import get_logger
 from q_learning_lab.domain.q_learn import Agent
 from q_learning_lab.domain.frozen_lake.models import Params
 from pathlib import Path
+from q_learning_lab.port.frozen_lake import create_agent
 
 logger = get_logger(name=__name__, level="DEBUG")
 
@@ -25,7 +26,7 @@ class TestQ_learning_lab(unittest.TestCase):
             learning_rate=0.8,
             gamma=0.95,
             epsilon=0.1,
-            map_size=5,
+            map_size=4,
             seed=123,
             is_slippery=False,
             n_runs=20,
@@ -43,7 +44,7 @@ class TestQ_learning_lab(unittest.TestCase):
 
     def test_create_env(self):
         """Test something."""
-        env = create_execute_environment(arena="frozen_lake")
+        env = create_execute_environment(arena="frozen_lake", params=self.params)
         assert env is not None
         logger.debug(env.get_description())
         print(type(env.get_description()))
@@ -56,7 +57,7 @@ class TestQ_learning_lab(unittest.TestCase):
 
     def test_random_walk(self):
         """Test something."""
-        env = create_execute_environment(arena="frozen_lake")
+        env = create_execute_environment(arena="frozen_lake", params=self.params)
         assert env is not None
         agent = Agent(
             learning_rate=self.params.learning_rate,
@@ -67,7 +68,7 @@ class TestQ_learning_lab(unittest.TestCase):
 
     def test_train(self):
         """Test something."""
-        env = create_execute_environment(arena="frozen_lake")
+        env = create_execute_environment(arena="frozen_lake", params=self.params)
         assert env is not None
         agent = Agent(
             learning_rate=self.params.learning_rate,
@@ -87,12 +88,16 @@ class TestQ_learning_lab(unittest.TestCase):
 
     def test_evaluate(self):
         """Test something."""
-        env = create_execute_environment(arena="frozen_lake")
+        env = create_execute_environment(arena="frozen_lake", params=self.params)
         assert env is not None
-        agent = Agent(
-            learning_rate=self.params.learning_rate,
-            discount_rate=self.params.gamma,
-            is_verbose=False,
+        # agent = Agent(
+        #     learning_rate=self.params.learning_rate,
+        #     discount_rate=self.params.gamma,
+        #     is_verbose=False,
+        # )
+        agent = create_agent(
+            params=self.params,
+            is_verbose=False
         )
         qtable = agent.train(
             env=env,
