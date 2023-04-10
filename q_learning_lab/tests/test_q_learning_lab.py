@@ -10,7 +10,7 @@ from q_learning_lab.utility.logging import get_logger
 from q_learning_lab.domain.q_learn import Agent
 from q_learning_lab.domain.models.frozen_lake_models import Params
 from pathlib import Path
-from q_learning_lab.port.frozen_lake import create_agent
+from q_learning_lab.port.agent import create_agent
 
 logger = get_logger(name=__name__, level="DEBUG")
 

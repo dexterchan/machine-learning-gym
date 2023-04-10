@@ -3,10 +3,14 @@ from typing import Any, NamedTuple
 
 class Execute_Environment:
     def __init__(self, arena: str, params: NamedTuple):
-        if arena == "frozen_lake":
+        if arena.lower() == "frozen_lake":
             from ..adapter.gym.gym_environment import Fronzen_Lake_Environment
 
             self.env = Fronzen_Lake_Environment(params=params)
+        elif arena.lower() == "cartpole-v1":
+            from ..adapter.gym.gym_environment import Cart_Pole_v1_Environment
+
+            self.env = Cart_Pole_v1_Environment(params=params)
         else:
             raise NotImplementedError("Arena not implemented")
 
