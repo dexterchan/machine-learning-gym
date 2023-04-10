@@ -10,8 +10,9 @@ import numpy as np
 logger = get_logger(name=__name__)
 
 
-# Reference: https://toxwardsdatascience.com/q-learning-algorithm-how-to-successfully-teach-an-intelligent-agent-to-play-a-game-933595fd1abf
+# Reference: https://towardsdatascience.com/q-learning-algorithm-how-to-successfully-teach-an-intelligent-agent-to-play-a-game-933595fd1abf
 # https://gymnasium.farama.org/tutorials/training_agents/FrozenLake_tuto/#sphx-glr-tutorials-training-agents-frozenlake-tuto-py
+# [Deep Q learning](https://towardsdatascience.com/deep-q-learning-tutorial-mindqn-2a4c855abffc)
 
 
 def create_q_table(env: Execute_Environment) -> np.ndarray:
@@ -44,7 +45,8 @@ class Agent:
             observation_space, reward, terminated, truncated, info = result
 
             # Wait a little bit before the next frame
-            time.sleep(0.2)
+            if self.is_verbose:
+                time.sleep(0.2)
             if terminated:
                 if self.is_verbose:
                     env.render()

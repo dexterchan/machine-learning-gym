@@ -7,3 +7,6 @@ python-json-logger==2.0.1 #quick solution as json logging
 
 
 seaborn==0.12.2
+
+
+tensorflow==2.11.1
