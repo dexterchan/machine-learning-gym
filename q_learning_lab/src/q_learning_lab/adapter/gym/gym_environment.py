@@ -24,7 +24,7 @@ from typing import Any
 #     return env
 
 
-from ...domain.frozen_lake.frozen_lake_models import Action_Space
+from ...domain.models.frozen_lake_models import Action_Space
 
 import matplotlib
 import matplotlib.pyplot as plt  # for displaying environment states
