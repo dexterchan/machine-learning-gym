@@ -1,7 +1,5 @@
 from __future__ import annotations
 from ..port.environment import Execute_Environment
-from .frozen_lake.models import Action_Space
-from ..port.environment import Execute_Environment
 from ..utility.logging import get_logger
 
 import time
@@ -40,7 +38,7 @@ class Agent:
             if self.is_verbose:
                 env.render()
             # Pass the random action into the step function
-            random_action: Action_Space = env.sample_action_space()
+            random_action = env.sample_action_space()
             result = env.step(random_action)
             observation_space, reward, terminated, truncated, info = result
 

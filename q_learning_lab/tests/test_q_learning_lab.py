@@ -8,7 +8,7 @@ import unittest
 from q_learning_lab.port.environment import create_execute_environment
 from q_learning_lab.utility.logging import get_logger
 from q_learning_lab.domain.q_learn import Agent
-from q_learning_lab.domain.frozen_lake.models import Params
+from q_learning_lab.domain.frozen_lake.frozen_lake_models import Params
 from pathlib import Path
 from q_learning_lab.port.frozen_lake import create_agent
 
@@ -95,10 +95,7 @@ class TestQ_learning_lab(unittest.TestCase):
         #     discount_rate=self.params.gamma,
         #     is_verbose=False,
         # )
-        agent = create_agent(
-            params=self.params,
-            is_verbose=False
-        )
+        agent = create_agent(params=self.params, is_verbose=False)
         qtable = agent.train(
             env=env,
             n_episodes=self.params.total_episodes,

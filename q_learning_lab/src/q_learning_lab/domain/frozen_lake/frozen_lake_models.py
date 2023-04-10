@@ -23,24 +23,24 @@ class Params(NamedTuple):
     decay_rate: float = 0.001  # Exponential decay rate for exploration prob
 
 
-params = Params(
-    total_episodes=200,
-    n_max_steps=100,
-    learning_rate=0.8,
-    gamma=0.95,
-    epsilon=0.1,
-    map_size=5,
-    seed=123,
-    is_slippery=False,
-    n_runs=20,
-    action_size=None,
-    state_size=None,
-    proba_frozen=0.9,
-    savefig_folder=Path("_static/img/tutorials/"),
-    start_epsilon = 1.0,  # Starting exploration probability
-    min_epsilon = 0.05,  # Minimum exploration probability
-    decay_rate = 0.001
-)
+# params = Params(
+#     total_episodes=200,
+#     n_max_steps=100,
+#     learning_rate=0.8,
+#     gamma=0.95,
+#     epsilon=0.1,
+#     map_size=5,
+#     seed=123,
+#     is_slippery=False,
+#     n_runs=20,
+#     action_size=None,
+#     state_size=None,
+#     proba_frozen=0.9,
+#     savefig_folder=Path("_static/img/tutorials/"),
+#     start_epsilon=1.0,  # Starting exploration probability
+#     min_epsilon=0.05,  # Minimum exploration probability
+#     decay_rate=0.001,
+# )
 
 
 class Action_Space(int, Enum):
@@ -50,22 +50,22 @@ class Action_Space(int, Enum):
     UP = 3
 
 
-class State:
-    def __init__(self) -> None:
-        pass
+# class State:
+#     def __init__(self) -> None:
+#         pass
 
 
-class Policy:
-    def __init__(self) -> None:
-        pass
+# class Policy:
+#     def __init__(self) -> None:
+#         pass
 
-    def act(self, observation: Any) -> Action_Space:
-        raise NotImplementedError("Policy not implemented")
+#     def act(self, observation: Any) -> Action_Space:
+#         raise NotImplementedError("Policy not implemented")
 
 
-class Reward:
-    def __init__(self) -> None:
-        pass
+# class Reward:
+#     def __init__(self) -> None:
+#         pass
 
-    def get_reward(self, state: State) -> float:
-        raise NotImplementedError("Reward not implemented")
+#     def get_reward(self, state: State) -> float:
+#         raise NotImplementedError("Reward not implemented")
