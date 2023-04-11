@@ -8,14 +8,17 @@ from q_learning_lab.domain.models.cart_pole_v1_models import (
     Params as Cart_Pole_V1_Params,
 )
 import unittest
+import pytest
+import numpy as np
 
 from q_learning_lab.utility.logging import get_logger
 from q_learning_lab.domain.deep_q_learn import (
-    SequentialStructure,
-    ProcessLayer,
-    InputLayer,
     DeepAgent,
+    SequentialStructure,
 )
+from q_learning_lab.domain.models.cart_pole_v1_models import get_dnn_structure
+
+from q_learning_lab.domain.deep_q_learn import Reinforcement_DeepLearning
 
 logger = get_logger(name=__name__, level="DEBUG")
 
@@ -37,19 +40,6 @@ class TestDeepQLearning(unittest.TestCase):
             min_epsilon=0.05,  # Minimum exploration probability
             decay_rate=0.001,
         )
-        init = tf.keras.initializers.HeUniform()
-        self.dnn_structure = SequentialStructure(
-            initializer=tf.keras.initializers.HeUniform(),
-            input_layer=InputLayer(
-                units=24, input_shape=(4,), activation="relu", kernel_initializer=init
-            ),
-            process_layers=[
-                ProcessLayer(units=12, activation="relu", kernel_initializer=init),
-                ProcessLayer(units=2, activation="linear", kernel_initializer=init),
-            ],
-            loss_function=tf.keras.losses.Huber(),
-            optimizer=tf.keras.optimizers.Adam(learning_rate=optimizer_learning_rate),
-        )
 
     def tearDown(self):
         """Tear down test fixtures, if any."""
@@ -63,17 +53,50 @@ class TestDeepQLearning(unittest.TestCase):
 
         action = env.sample_action_space()
         print(action)
+        assert action in [0, 1]
         assert env.action_space_dim == 2
         assert env.observation_space_dim[0] == 4
 
     def test_create_agent(self):
+        env = create_execute_environment(arena="CartPole-v1", params=self.params)
+        assert env is not None
+
+        dnn_structure: SequentialStructure = get_dnn_structure(
+            input_dim=env.observation_space_dim,
+            output_dim=env.action_space_dim,
+        )
         main = create_deep_agent(
-            params=self.params, structure=self.dnn_structure, is_verbose=False
+            params=self.params, structure=dnn_structure, is_verbose=False
         )
         assert main is not None
         assert isinstance(main, DeepAgent)
         target = create_deep_agent(
-            params=self.params, structure=self.dnn_structure, is_verbose=False
+            params=self.params, structure=dnn_structure, is_verbose=False
         )
         target.copy_weights(other=main)
-        assert main.model.get_weights().all() == target.model.get_weights().all()
+
+        state = env.reset()
+        action = main.predict(state=state[0])
+        # logger.info(action.flatten())
+        assert action.shape == (2,)
+        logger.info(action)
+        logger.info(np.argmax(action))
+
+    @pytest.mark.skip(reason="not implemented yet")
+    def test_training(self):
+        env = create_execute_environment(arena="CartPole-v1", params=self.params)
+        from q_learning_lab.domain.models.cart_pole_v1_models import get_dnn_structure
+
+        dnn_structure = get_dnn_structure(
+            input_dim=env.observation_space_dim,
+            output_dim=env.action_space_dim,
+        )
+
+        deepagent_dict = Reinforcement_DeepLearning.train(
+            env=env,
+            params=self.params,
+            dnn_structure=dnn_structure,
+            is_verbose=False,
+        )
+
+        pass

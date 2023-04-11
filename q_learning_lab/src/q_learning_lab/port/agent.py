@@ -11,10 +11,12 @@ def create_agent(params: NamedTuple, is_verbose: bool = False) -> Agent:
     )
 
 
-def create_deep_agent(params: NamedTuple, structure: SequentialStructure, is_verbose: bool = False) -> DeepAgent:
+def create_deep_agent(
+    params: NamedTuple, structure: SequentialStructure, is_verbose: bool = False
+) -> DeepAgent:
     return DeepAgent(
         learning_rate=params.learning_rate,
-        discount_rate=params.gamma,
+        discount_factor=params.gamma,
         is_verbose=is_verbose,
-        structure=structure
+        structure=structure,
     )
