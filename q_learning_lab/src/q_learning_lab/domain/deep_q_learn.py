@@ -105,6 +105,17 @@ class DeepAgent:
         """
         return self.model.predict(state.reshape(1, state.shape[0])).flatten()
 
+    def predict_batch(self, states: np.ndarray) -> Any:
+        """_summary_
+
+        Args:
+            states (np.ndarray): column based vector (M,N) in shape
+
+        Returns:
+            Any: action space with Q values (2,1)
+        """
+        return self.model.predict(states)
+
     def epsilon_greedy(
         self,
         env: Execute_Environment,
@@ -289,8 +300,8 @@ class Reinforcement_DeepLearning:
             DeepAgent: _description_
         """
 
-        current_qs_list = main.model.predict(current_states)
-        future_qs_list = target.model.predict(next_states)
+        current_qs_list = main.predict_batch(current_states)
+        future_qs_list = target.predict_batch(next_states)
 
         X = []
         Y = []
