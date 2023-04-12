@@ -10,8 +10,10 @@ from keras.optimizers import Optimizer
 from typing import NamedTuple, Any
 from collections import deque
 import numpy as np
-from ..utility.logging import get_logger
 import json
+import os
+
+from ..utility.logging import get_logger
 
 logger = get_logger(__name__)
 # Reference https://github.com/mswang12/minDQN/blob/main/minDQN.py
@@ -65,7 +67,9 @@ class DeepAgent:
     def verbose(self, value: bool) -> None:
         self.is_verbose = value
 
-    def save_agent(self, path: str) -> None:
+    def save_agent(
+        self, path: str, episode: int, epsilon: float, total_reward: float
+    ) -> None:
         """save the agent into file
             it will save into two files:
             - path + ".tfm" : tensorflow model
@@ -78,8 +82,11 @@ class DeepAgent:
         agent_path = path + ".json"
         self.model.save(tensorflow_model_path)
         model_dict: dict = {
+            "episode": episode,
             "learning_rate": self.learning_rate,
             "discounting_factor": self.discounting_factor,
+            "epsilon": epsilon,
+            "total_reward": total_reward,
         }
         with open(agent_path, "w") as f:
             json.dump(model_dict, f)
@@ -217,6 +224,7 @@ class Reinforcement_DeepLearning:
         params: NamedTuple,
         dnn_structure: SequentialStructure,
         is_verbose: bool = False,
+        model_name: str = "CartPole-v1",
     ) -> dict[str, DeepAgent]:
         """_summary_
 
@@ -238,6 +246,8 @@ class Reinforcement_DeepLearning:
             params.min_epsilon
         )  # At a minimum, we'll always explore 1% of the time
         decay = params.decay_rate
+
+        model_path: str = os.path.join(params.savemodel_folder, "training", model_name)
 
         every_n_steps_to_train_main_model = params.every_n_steps_to_train_main_model
         every_m_steps_to_copy_main_weights_to_target_model = (
@@ -334,6 +344,13 @@ class Reinforcement_DeepLearning:
             epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(
                 -decay * episode
             )
+            if episode % 10 == 0:
+                main.save_agent(
+                    path=f"{model_path}_{episode}",
+                    episode=episode,
+                    epsilon=epsilon,
+                    total_reward=total_training_rewards,
+                )
         return {"main": main, "target": target}
 
     @staticmethod

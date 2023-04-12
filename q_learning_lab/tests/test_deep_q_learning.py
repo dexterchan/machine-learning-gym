@@ -30,9 +30,9 @@ class TestDeepQLearning(unittest.TestCase):
         super().__init__(methodName)
 
     def setUp(self) -> None:
-        optimizer_learning_rate = 0.001
+        # optimizer_learning_rate = 0.001
         self.params = Cart_Pole_V1_Params(
-            total_episodes=200,
+            total_episodes=2000,
             n_max_steps=3000,
             learning_rate=0.7,
             gamma=0.618,
