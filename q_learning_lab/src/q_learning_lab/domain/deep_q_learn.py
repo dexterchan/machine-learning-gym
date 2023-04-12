@@ -11,9 +11,14 @@ from typing import NamedTuple, Any
 from collections import deque
 import numpy as np
 from ..utility.logging import get_logger
+import json
 
 logger = get_logger(__name__)
 # Reference https://github.com/mswang12/minDQN/blob/main/minDQN.py
+import time
+
+np.random.seed(int(time.time()))
+tf.random.set_seed(int(time.time()))
 
 
 class InputLayer(NamedTuple):
@@ -48,8 +53,62 @@ class DeepAgent:
         self.is_verbose: bool = is_verbose
         self.learning_rate: float = learning_rate
         self.discounting_factor: float = discount_factor
-        self.model = self._create_sequential_model(structure=structure)
+        if structure is not None:
+            self.model = self._create_sequential_model(structure=structure)
         pass
+
+    @property
+    def verbose(self) -> bool:
+        return self.is_verbose
+
+    @verbose.setter
+    def verbose(self, value: bool) -> None:
+        self.is_verbose = value
+
+    def save_agent(self, path: str) -> None:
+        """save the agent into file
+            it will save into two files:
+            - path + ".tfm" : tensorflow model
+            - path + ".json" : agent parameters
+
+        Args:
+            path (str): file path
+        """
+        tensorflow_model_path = path + ".tfm"
+        agent_path = path + ".json"
+        self.model.save(tensorflow_model_path)
+        model_dict: dict = {
+            "learning_rate": self.learning_rate,
+            "discounting_factor": self.discounting_factor,
+        }
+        with open(agent_path, "w") as f:
+            json.dump(model_dict, f)
+        pass
+
+    @classmethod
+    def load_agent(cls, path: str) -> DeepAgent:
+        """load the agent from file
+            it will load from two files:
+            - path + ".tfm" : tensorflow model
+            - path + ".json" : agent parameters
+
+        Args:
+            path (str): file path
+        """
+        tensorflow_model_path = path + ".tfm"
+        agent_path = path + ".json"
+        _sequential_model = keras.models.load_model(tensorflow_model_path)
+        with open(agent_path, "r") as f:
+            model_dict: dict = json.load(f)
+        learning_rate = model_dict["learning_rate"]
+        discounting_factor = model_dict["discounting_factor"]
+        instance = cls(
+            structure=None,
+            learning_rate=learning_rate,
+            discount_factor=discounting_factor,
+        )
+        instance.model = _sequential_model
+        return instance
 
     def _create_sequential_model(
         self, structure: SequentialStructure
@@ -68,7 +127,7 @@ class DeepAgent:
                 units=structure.input_layer.units,
                 input_shape=structure.input_layer.input_shape,
                 activation=structure.input_layer.activation,
-                kernel_initializer=structure.initializer,
+                kernel_initializer=structure.input_layer.kernel_initializer,
             )
         )
         for layer in structure.process_layers:
@@ -76,7 +135,7 @@ class DeepAgent:
                 keras.layers.Dense(
                     units=layer.units,
                     activation=layer.activation,
-                    kernel_initializer=structure.initializer,
+                    kernel_initializer=layer.kernel_initializer,
                 )
             )
         model.compile(
@@ -135,7 +194,7 @@ class DeepAgent:
             int: action value
         """
 
-        def _exploit() -> int:
+        def _exploit(state: np.array) -> int:
             output = self.predict(state=state)
             return np.argmax(output)
 
@@ -195,12 +254,14 @@ class Reinforcement_DeepLearning:
             structure=dnn_structure,
             learning_rate=learning_rate,
             discount_factor=discount_factor,
+            is_verbose=is_verbose,
         )
         # 1b. initialize the target model, (updated every "every_m_steps_to_copy_main_weights_to_target_model" steps)
         target = DeepAgent(
             structure=dnn_structure,
             learning_rate=learning_rate,
             discount_factor=discount_factor,
+            is_verbose=False,
         )
         target.copy_weights(main)
 
@@ -219,7 +280,7 @@ class Reinforcement_DeepLearning:
                     env.render()
 
                 # 2. Explore with Epsilon Greedy exploration
-                action = main.epsilon_greedy(state=state, epsilon=epsilon)
+                action = main.epsilon_greedy(env=env, state=state, epsilon=epsilon)
 
                 next_state, reward, terminated, truncated, info = env.step(
                     action=action
@@ -258,7 +319,7 @@ class Reinforcement_DeepLearning:
 
                 if terminated:
                     logger.info(
-                        f"Total training rewards: {total_training_rewards} after n steps = {steps_to_update_target_model} with final reward = {total_training_rewards}"
+                        f"Episode{episode}: Total training rewards: {total_training_rewards} after n steps = {steps_to_update_target_model} with final reward = {total_training_rewards}"
                     )
                     if (
                         steps_to_update_target_model

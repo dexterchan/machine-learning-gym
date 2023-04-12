@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Any, NamedTuple
 from pathlib import Path
 import tensorflow as tf
+import time
 
 
 class Params(NamedTuple):
@@ -12,6 +13,7 @@ class Params(NamedTuple):
     gamma: float  # Discounting rate
     epsilon: float  # Exploration probability
     savefig_folder: Path  # Root folder where plots are saved
+    savemodel_folder: Path  # Root folder where models are saved
     start_epsilon: float = 1.0  # Starting exploration probability
     min_epsilon: float = 0.05  # Minimum exploration probability
     decay_rate: float = 0.001  # Exponential decay rate for exploration prob
@@ -47,9 +49,10 @@ def get_dnn_structure(input_dim: tuple, output_dim: int) -> SequentialStructure:
     Returns:
         SequentialStructure: Sequential Structure of DNN
     """
-    init = tf.keras.initializers.HeUniform()
+
+    init = tf.keras.initializers.HeUniform(seed=int(time.time()))
     return SequentialStructure(
-        initializer=tf.keras.initializers.HeUniform(),
+        initializer=init,
         input_layer=InputLayer(
             units=24,
             input_shape=input_dim,
