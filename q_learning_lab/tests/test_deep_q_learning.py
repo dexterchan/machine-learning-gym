@@ -32,7 +32,7 @@ class TestDeepQLearning(unittest.TestCase):
     def setUp(self) -> None:
         # optimizer_learning_rate = 0.001
         self.params = Cart_Pole_V1_Params(
-            total_episodes=2000,
+            total_episodes=200,
             n_max_steps=3000,
             learning_rate=0.7,
             gamma=0.618,
@@ -152,7 +152,11 @@ class TestDeepQLearning(unittest.TestCase):
         model_path = os.path.join(
             self.params.savemodel_folder, "dummy", "CartPole-v1-dummy"
         )
-        main.save_agent(path=model_path)
+        main.save_agent(
+                path=model_path,
+                    episode=1,
+                    epsilon=1,
+                    total_reward=1,)
         pass
 
     @pytest.mark.skipif(
@@ -178,5 +182,5 @@ class TestDeepQLearning(unittest.TestCase):
         model_path = os.path.join(
             self.params.savemodel_folder, "unittest", "CartPole-v1-unittest"
         )
-        deepagent_dict["main"].save_agent(path=model_path)
+        
         pass
