@@ -87,6 +87,7 @@ install: clean ## install the package to the active Python's site-packages
 	python setup.py install
 
 setup_env:
-	conda install -c conda-forge --file requirements.txt
+	mamba install -y -c conda-forge --file requirements.txt
 	mamba install -y -c conda-forge --file requirements_jupyter.txt
-	python3 -m pip install -r requirements_dev.txt
+	mamba install -y -c conda-forge --file requirements_dev.txt
+	#python3 -m pip install -r requirements_dev.txt
