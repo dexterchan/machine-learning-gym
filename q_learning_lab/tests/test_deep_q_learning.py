@@ -3,7 +3,7 @@ import tensorflow as tf
 from pathlib import Path
 import os
 from q_learning_lab.port.environment import create_execute_environment
-from q_learning_lab.port.agent import create_deep_agent
+from q_learning_lab.port.agent import create_new_deep_agent
 from q_learning_lab.domain.models.cart_pole_v1_models import (
     Params as Cart_Pole_V1_Params,
 )
@@ -68,12 +68,12 @@ class TestDeepQLearning(unittest.TestCase):
             input_dim=env.observation_space_dim,
             output_dim=env.action_space_dim,
         )
-        main = create_deep_agent(
+        main = create_new_deep_agent(
             params=self.params, structure=dnn_structure, is_verbose=False
         )
         assert main is not None
         assert isinstance(main, DeepAgent)
-        target = create_deep_agent(
+        target = create_new_deep_agent(
             params=self.params, structure=dnn_structure, is_verbose=False
         )
         target.copy_weights(other=main)
