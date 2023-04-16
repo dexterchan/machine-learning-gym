@@ -91,3 +91,9 @@ setup_env:
 	mamba install -y -c conda-forge --file requirements_jupyter.txt
 	mamba install -y -c conda-forge --file requirements_dev.txt
 	#python3 -m pip install -r requirements_dev.txt
+
+create_container_image:
+	sh scripts/container/build_image.sh
+
+training:
+	python3 -m q_learning_lab -b cartpole-v1 -c /var/task/config/samples/cart_pole_v1.json

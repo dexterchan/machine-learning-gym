@@ -215,30 +215,41 @@ class DeepAgent:
             action = _exploit(state=state)  # exploit
 
         return action
-    
-    def play(self, env: Execute_Environment, max_step:int) -> float:
-        """play the game
-        """
-        
-        state = env.reset()
+
+    def play(self, env: Execute_Environment, max_step: int) -> tuple[float, bool]:
+        """play the game"""
+
+        state, _ = env.reset()
         total_reward = 0
-        for step in range(max_step):
+        COMPLETE: bool = False
+        for step in range(1, max_step + 1):
             if self.is_verbose:
                 env.render()
+                time.sleep(0.2)
             # Get the action
-            action = self.epsilon_greedy(env=env, state=state, epsilon=0, is_exploit_only=True)
+            action = self.epsilon_greedy(
+                env=env, state=state, epsilon=0, is_exploit_only=True
+            )
 
-            next_state, reward, terminated, truncated, info = env.step(
-                    action=action
-                )
+            next_state, reward, terminated, truncated, info = env.step(action=action)
             total_reward += reward
             state = next_state
+            COMPLETE = step >= max_step
+
             if terminated:
+                COMPLETE = step >= max_step
+                if COMPLETE:
+                    logger.info("Finish with max step")
                 break
             pass
-
-        env.close()
-        pass
+        logger.info(
+            "Finished playing with total reward: %s Finish state: %s , Complete: %s, step: %s",
+            total_reward,
+            terminated,
+            COMPLETE,
+            step,
+        )
+        return total_reward, COMPLETE
 
 
 class Reinforcement_DeepLearning:
