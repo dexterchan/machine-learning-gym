@@ -51,7 +51,7 @@ ARG RUN_USER
 
 WORKDIR $RUN_DIR
 # COPY requirements.txt and modify to RUN_USER as owner
-COPY --chown=${RUN_USER}:${RUN_USER} requirements-linux-${ARCH}.txt ${RUN_DIR}/requirements-linux-${ARCH}.txt
+COPY --chown=${RUN_USER}:${RUN_USER} requirements-linux-aarch64.txt ${RUN_DIR}/requirements-linux-${ARCH}.txt
 
 # Install requirements
 RUN mamba install -y -c conda-forge --file requirements-linux-${ARCH}.txt
