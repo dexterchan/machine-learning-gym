@@ -24,26 +24,26 @@ RUN groupadd --system --gid=9999  ${APPUSER} && \
 # Debian python install pip
 RUN apt-get install -y python3-pip 
 
-# # Install miniconda
-# ENV CONDA_DIR=/var/conda
-# RUN mkdir -p $CONDA_DIR && \
-#     apt-get install -y wget && \
-#     wget -O ${MINICONDA_SCRIPT} "https://repo.anaconda.com/miniconda/${MINICONDA_SCRIPT}" && \
-#     apt-get remove -y wget && \
-#     sh ${MINICONDA_SCRIPT} -b -p $CONDA_DIR/miniconda -f && \
-#     rm -Rf ${MINICONDA_SCRIPT}
+# Install miniconda
+ENV CONDA_DIR=/var/conda
+RUN mkdir -p $CONDA_DIR && \
+    apt-get install -y wget && \
+    wget -O ${MINICONDA_SCRIPT} "https://repo.anaconda.com/miniconda/${MINICONDA_SCRIPT}" && \
+    apt-get remove -y wget && \
+    sh ${MINICONDA_SCRIPT} -b -p $CONDA_DIR/miniconda -f && \
+    rm -Rf ${MINICONDA_SCRIPT}
 
-# ENV PATH=$CONDA_DIR/miniconda/bin:$PATH
-# ENV LD_LIBRARY_PATH=$CONDA_DIR/miniconda/lib:$LD_LIBRARY_PATH
-# RUN eval "$(conda shell.bash hook)" && \
-#     chmod 755 $CONDA_DIR && \
-#     chown -R ${APPUSER}:${APPUSER} $CONDA_DIR && \
-#     conda init
+ENV PATH=$CONDA_DIR/miniconda/bin:$PATH
+ENV LD_LIBRARY_PATH=$CONDA_DIR/miniconda/lib:$LD_LIBRARY_PATH
+RUN eval "$(conda shell.bash hook)" && \
+    chmod 755 $CONDA_DIR && \
+    chown -R ${APPUSER}:${APPUSER} $CONDA_DIR && \
+    conda init
 RUN chown -R ${APPUSER}:${APPUSER} $RUN_DIR
 
 USER ${APPUSER}
-# RUN conda config --add channels conda-forge
-# RUN conda install mamba -c conda-forge -y
+RUN conda config --add channels conda-forge
+RUN conda install mamba -c conda-forge -y
 
 FROM base as install
 ARG RUN_DIR
@@ -51,13 +51,12 @@ ARG RUN_USER
 
 WORKDIR $RUN_DIR
 # COPY requirements.txt and modify to RUN_USER as owner
-COPY --chown=${RUN_USER}:${RUN_USER} requirements.txt ${RUN_DIR}/requirements.txt
-COPY --chown=${RUN_USER}:${RUN_USER} requirements_minimum.txt ${RUN_DIR}/requirements_minimum.txt
+COPY --chown=${RUN_USER}:${RUN_USER} requirements-linux-${ARCH}.txt ${RUN_DIR}/requirements-linux-${ARCH}.txt
+
 # Install requirements
-# RUN mamba install -y -c conda-forge --file requirements.txt
+RUN mamba install -y -c conda-forge --file requirements-linux-${ARCH}.txt
 # RUN	mamba install -y -c conda-forge --file requirements_jupyter.txt
-RUN pip install -r requirements.txt
-RUN pip install -r requirements_minimum.txt
+# RUN pip install -r requirements-linux-${ARCH}.txt
 
 FROM install as dev
 ARG RUN_DIR
