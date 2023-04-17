@@ -48,19 +48,22 @@ RUN conda install mamba -c conda-forge -y
 FROM base as install
 ARG RUN_DIR
 ARG RUN_USER
+ARG ARCH
 
 WORKDIR $RUN_DIR
 # COPY requirements.txt and modify to RUN_USER as owner
-COPY --chown=${RUN_USER}:${RUN_USER} requirements-linux-aarch64.txt ${RUN_DIR}/requirements-linux-${ARCH}.txt
+COPY --chown=${RUN_USER}:${RUN_USER} requirements-linux-${ARCH}.txt ${RUN_DIR}/requirements-linux-${ARCH}.txt
 
 # Install requirements
 RUN mamba install -y -c conda-forge --file requirements-linux-${ARCH}.txt
+RUN pip install -y pygame==2.3.0
 # RUN	mamba install -y -c conda-forge --file requirements_jupyter.txt
 # RUN pip install -r requirements-linux-${ARCH}.txt
 
 FROM install as dev
 ARG RUN_DIR
 ARG RUN_USER
+ARG ARCH
 
 #COPY src/q_learning_lab module into workdir
 COPY --chown=${RUN_USER}:${RUN_USER} src/q_learning_lab ${RUN_DIR}/q_learning_lab
