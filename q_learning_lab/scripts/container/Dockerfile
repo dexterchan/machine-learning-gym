@@ -56,7 +56,7 @@ COPY --chown=${RUN_USER}:${RUN_USER} requirements-linux-${ARCH}.txt ${RUN_DIR}/r
 
 # Install requirements
 RUN mamba install -y -c conda-forge --file requirements-linux-${ARCH}.txt
-RUN pip install -y pygame==2.3.0
+RUN pip install pygame==2.3.0
 # RUN	mamba install -y -c conda-forge --file requirements_jupyter.txt
 # RUN pip install -r requirements-linux-${ARCH}.txt
 
