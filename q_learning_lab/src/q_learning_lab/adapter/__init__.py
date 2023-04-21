@@ -27,7 +27,7 @@ class Interface_Environment:
         return None
 
     @property
-    def observation_space_dim(self) -> int:
+    def observation_space_dim(self) -> tuple[int]:
         """Return action space dimension
             for gym
             if hasattr(self.env.observation_space, "n"):
@@ -36,7 +36,7 @@ class Interface_Environment:
                 return self.env.observation_space.shape
 
         Returns:
-            int: dimension of the observation space
+            tuple[int]: dimension of the observation space
         """
         raise NotImplementedError("No dimension found for observation space.")
 

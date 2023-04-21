@@ -11,6 +11,10 @@ class Execute_Environment:
             from ..adapter.gym.gym_environment import Cart_Pole_v1_Environment
 
             self.env = Cart_Pole_v1_Environment(params=params)
+        elif arena.lower() == "dummy":
+            from ..adapter.dummy.dummy_environment import Dummy_Environment
+
+            self.env = Dummy_Environment(params={})
         else:
             raise NotImplementedError("Arena not implemented")
 
@@ -28,9 +32,6 @@ class Execute_Environment:
 
     def get_description(self) -> Any:
         return self.env.get_description()
-
-    def get_action_space(self) -> Any:
-        return self.env.get_action_space()
 
     def sample_action_space(self) -> Any:
         return self.env.sample_action_space()

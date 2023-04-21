@@ -1,5 +1,5 @@
 {
-    "total_episodes": 200,
+    "total_episodes": 2000,
     "n_max_steps": 3000,
     "learning_rate": 0.7,
     "gamma": 0.618,
@@ -8,5 +8,7 @@
     "savemodel_folder": "_static/model/test/",
     "start_epsilon": 1.0,
     "min_epsilon": 0.05,
-    "decay_rate": 0.001
+    "decay_rate": 0.001,
+    "min_replay_size": 200,
+    "replay_memory_size": 400
 }

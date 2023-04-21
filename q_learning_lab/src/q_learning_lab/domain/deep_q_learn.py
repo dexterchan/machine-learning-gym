@@ -129,6 +129,7 @@ class DeepAgent:
             keras.Sequential: Sequential model
         """
         model = keras.Sequential()
+        
         model.add(
             keras.layers.Dense(
                 units=structure.input_layer.units,

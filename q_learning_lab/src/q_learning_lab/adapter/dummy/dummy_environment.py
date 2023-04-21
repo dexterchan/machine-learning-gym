@@ -12,8 +12,8 @@ class Action_Space(int, Enum):
 
 
 class Dummy_Environment(Interface_Environment):
-    def __init__(self) -> None:
-        self.observation_space_dim = 4
+    def __init__(self, params: dict) -> None:
+        self._observation_space_dim = 4
 
     def render(self):
         """Render and display current state of the environment"""
@@ -21,7 +21,7 @@ class Dummy_Environment(Interface_Environment):
 
     def reset(self) -> tuple[np.ndarray, Any]:
         # Return numpy array of (dim,1) in shape
-        return np.random.rand(self.observation_space_dim), None
+        return np.random.rand(self._observation_space_dim), None
 
     def step(self, action: Action_Space) -> tuple[np.ndarray, float, bool, bool, dict]:
         """step function
@@ -39,7 +39,7 @@ class Dummy_Environment(Interface_Environment):
             tuple[np.ndarray, float, bool, bool, dict]: _description_
         """
         return (
-            np.random.rand(self.observation_space_dim),
+            np.random.rand(*self.observation_space_dim),
             random.random(),
             random.choice([True, False]),
             random.choice([True, False]),
@@ -76,7 +76,7 @@ class Dummy_Environment(Interface_Environment):
         return len(list(Action_Space))
 
     @property
-    def observation_space_dim(self) -> int:
+    def observation_space_dim(self) -> tuple[int]:
         """Return action space dimension
             for gym
             if hasattr(self.env.observation_space, "n"):
@@ -85,6 +85,6 @@ class Dummy_Environment(Interface_Environment):
                 return self.env.observation_space.shape
 
         Returns:
-            int: dimension of the observation space
+            tuple[int]: dimension of the observation space
         """
-        return self.observation_space_dim
+        return (self._observation_space_dim,)
