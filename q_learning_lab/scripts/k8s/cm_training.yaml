@@ -1,0 +1,48 @@
+#COnfig map of q-learning
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: q-learning-config
+  namespace: q-learning
+data:
+  cart_pole_v1.json: |
+    {
+        "total_episodes": 2000,
+        "n_max_steps": 3000,
+        "learning_rate": 0.7,
+        "gamma": 0.618,
+        "epsilon": 0.1,
+        "savefig_folder": "_static/img/test/",
+        "savemodel_folder": "_static/model/test/",
+        "start_epsilon": 1.0,
+        "min_epsilon": 0.05,
+        "decay_rate": 0.001,
+        "min_replay_size": 200,
+        "replay_memory_size": 400
+    }
+  cart_pole_v1_strategic.json: |
+    {
+      "env": {
+        "name": "CartPole-v1",
+        "max_episode_steps": 500,
+        "reward_threshold": 475.0
+      },
+      "agent": {
+        "name": "DQN",
+        "gamma": 0.99,
+        "batch_size": 32,
+        "lr": 0.0001,
+        "memory_size": 10000,
+        "epsilon": 1.0,
+        "epsilon_decay": 0.995,
+        "epsilon_min": 0.01,
+        "target_update": 1000,
+        "train_freq": 1,
+        "num_episodes": 10000,
+        "num_eval_episodes": 100,
+        "eval_freq": 100,
+        "eval_log_freq": 10,
+        "eval_render": false,
+        "eval_max_steps": 500,
+      }
+    }

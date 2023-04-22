@@ -15,17 +15,28 @@ spec:
         volumeMounts:
         - name: q-learning-pvc
           mountPath: /var/task/workspaces/_static/
+        - name: q-learning-config-volume
+          mountPath: /var/task/config/
         command:
           - python3
           - -m
           - q_learning_lab
           - -b 
-          - cartpole-v1 
+          - dummy
           - -c 
-          - /var/task/config/samples/cart_pole_v1.json
+          - /var/task/config/cart_pole_v1.json
       volumes:
       - name: q-learning-pvc
         persistentVolumeClaim:
           claimName: q-learning-pvc
+      # Mount config map "q-learning-config" under "/var/task/config/"
+      - name: q-learning-config-volume
+        configMap:
+          name: q-learning-config
+          items:
+          - key: cart_pole_v1.json
+            path: cart_pole_v1.json
+          - key: cart_pole_v1_strategic.json
+            path: cart_pole_v1_strategic.json
       restartPolicy: Never
   backoffLimit: 4
