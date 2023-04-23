@@ -95,6 +95,9 @@ setup_env:
 create_container_image:
 	sh scripts/container/build_image.sh
 
+create_container_image_slim:
+	sh scripts/container/build_image_slim.sh
+
 training: 
 	python3 -m q_learning_lab -b cartpole-v1 -c scripts/config/cart_pole_v1.json
 
