@@ -96,7 +96,7 @@ create_container_image:
 	sh scripts/container/build_image.sh
 
 training: 
-	python3 -m q_learning_lab -b cartpole-v1 -c /var/task/config/samples/cart_pole_v1.json
+	python3 -m q_learning_lab -b cartpole-v1 -c scripts/config/cart_pole_v1.json
 
 dummy_run: 
 	python3 -m q_learning_lab -b dummy -c scripts/config/cart_pole_v1_long.json

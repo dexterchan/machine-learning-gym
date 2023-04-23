@@ -4,9 +4,8 @@ from pathlib import Path
 import os
 from q_learning_lab.port.environment import create_execute_environment
 from q_learning_lab.port.agent import create_new_deep_agent
-from q_learning_lab.domain.models.cart_pole_v1_models import (
-    Params as Cart_Pole_V1_Params,
-)
+from q_learning_lab.domain.models.cart_pole_v1_models import Env_Params
+from q_learning_lab.domain.models.agent_params import Agent_Params
 import unittest
 import pytest
 import numpy as np
@@ -31,9 +30,10 @@ class TestDeepQLearning(unittest.TestCase):
 
     def setUp(self) -> None:
         # optimizer_learning_rate = 0.001
-        self.params = Cart_Pole_V1_Params(
-            total_episodes=200,
-            n_max_steps=3000,
+        self.env_params = Env_Params(total_episodes=20, n_max_steps=3000)
+        self.env_params_dict: dict = self.env_params._asdict()
+
+        self.agent_params: dict = Agent_Params(
             learning_rate=0.7,
             gamma=0.618,
             epsilon=0.1,
@@ -49,7 +49,9 @@ class TestDeepQLearning(unittest.TestCase):
 
     def test_create_env(self):
         """Test something."""
-        env = create_execute_environment(arena="CartPole-v1", params=self.params)
+        env = create_execute_environment(
+            arena="CartPole-v1", params=self.env_params_dict
+        )
         assert env is not None
         logger.debug(env.get_description())
         print(type(env.get_description()))
@@ -61,7 +63,9 @@ class TestDeepQLearning(unittest.TestCase):
         assert env.observation_space_dim[0] == 4
 
     def test_create_agent(self):
-        env = create_execute_environment(arena="CartPole-v1", params=self.params)
+        env = create_execute_environment(
+            arena="CartPole-v1", params=self.env_params_dict
+        )
         assert env is not None
 
         dnn_structure: SequentialStructure = get_dnn_structure(
@@ -69,12 +73,12 @@ class TestDeepQLearning(unittest.TestCase):
             output_dim=env.action_space_dim,
         )
         main = create_new_deep_agent(
-            params=self.params, structure=dnn_structure, is_verbose=False
+            params=self.agent_params, structure=dnn_structure, is_verbose=False
         )
         assert main is not None
         assert isinstance(main, DeepAgent)
         target = create_new_deep_agent(
-            params=self.params, structure=dnn_structure, is_verbose=False
+            params=self.agent_params, structure=dnn_structure, is_verbose=False
         )
         target.copy_weights(other=main)
 
@@ -90,7 +94,9 @@ class TestDeepQLearning(unittest.TestCase):
     )
     def test_train_main_model(self):
         # Setup CartPole-v1 Environment
-        env = create_execute_environment(arena="CartPole-v1", params=self.params)
+        env = create_execute_environment(
+            arena="CartPole-v1", params=self.env_params_dict
+        )
         assert env is not None
         # Setup DNN Structure
         dnn_structure: SequentialStructure = get_dnn_structure(
@@ -100,14 +106,14 @@ class TestDeepQLearning(unittest.TestCase):
         # 1a. initialize the main model, (updated every "every_n_steps_to_train_main_model" steps)
         main = DeepAgent(
             structure=dnn_structure,
-            learning_rate=self.params.learning_rate,
-            discount_factor=self.params.gamma,
+            learning_rate=self.agent_params.learning_rate,
+            discount_factor=self.agent_params.gamma,
         )
         # 1b. initialize the target model, (updated every "every_m_steps_to_copy_main_weights_to_target_model" steps)
         target = DeepAgent(
             structure=dnn_structure,
-            learning_rate=self.params.learning_rate,
-            discount_factor=self.params.gamma,
+            learning_rate=self.agent_params.learning_rate,
+            discount_factor=self.agent_params.gamma,
         )
         target.copy_weights(other=main)
 
@@ -145,25 +151,28 @@ class TestDeepQLearning(unittest.TestCase):
             mini_batch=mini_batch,
             current_states=current_states,
             next_states=future_states,
-            learning_rate=self.params.learning_rate,
-            discount_factor=self.params.gamma,
+            learning_rate=self.agent_params.learning_rate,
+            discount_factor=self.agent_params.gamma,
         )
 
         model_path = os.path.join(
-            self.params.savemodel_folder, "dummy", "CartPole-v1-dummy"
+            self.agent_params.savemodel_folder, "dummy", "CartPole-v1-dummy"
         )
         main.save_agent(
-                path=model_path,
-                    episode=1,
-                    epsilon=1,
-                    total_reward=1,)
+            path=model_path,
+            episode=1,
+            epsilon=1,
+            total_reward=1,
+        )
         pass
 
     @pytest.mark.skipif(
         "test_training" not in test_cases, reason="skipped test_training"
     )
     def test_training(self):
-        env = create_execute_environment(arena="CartPole-v1", params=self.params)
+        env = create_execute_environment(
+            arena="CartPole-v1", params=self.env_params_dict
+        )
         from q_learning_lab.domain.models.cart_pole_v1_models import get_dnn_structure
 
         dnn_structure = get_dnn_structure(
@@ -173,14 +182,15 @@ class TestDeepQLearning(unittest.TestCase):
 
         deepagent_dict = Reinforcement_DeepLearning.train(
             env=env,
-            params=self.params,
+            agent_params=self.agent_params,
+            env_params=self.env_params,
             dnn_structure=dnn_structure,
             is_verbose=False,
         )
 
         assert deepagent_dict is not None
         model_path = os.path.join(
-            self.params.savemodel_folder, "unittest", "CartPole-v1-unittest"
+            self.agent_params.savemodel_folder, "unittest", "CartPole-v1-unittest"
         )
-        
+
         pass

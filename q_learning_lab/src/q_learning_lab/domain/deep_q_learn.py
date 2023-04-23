@@ -129,7 +129,7 @@ class DeepAgent:
             keras.Sequential: Sequential model
         """
         model = keras.Sequential()
-        
+
         model.add(
             keras.layers.Dense(
                 units=structure.input_layer.units,
@@ -257,7 +257,8 @@ class Reinforcement_DeepLearning:
     @staticmethod
     def train(
         env: Execute_Environment,
-        params: NamedTuple,
+        agent_params: NamedTuple,
+        env_params: NamedTuple,
         dnn_structure: SequentialStructure,
         is_verbose: bool = False,
         model_name: str = "CartPole-v1",
@@ -266,35 +267,39 @@ class Reinforcement_DeepLearning:
 
         Args:
             env (Execute_Environment): _description_
-            params (NamedTuple): _description_
+            agent_params (NamedTuple): agent parameters
+            env_params (NamedTuple): environment parameters
             is_verbose (bool, optional): render the environment during training. Defaults to False.
 
         Returns:
             dict[str,DeepAgent]: _description_
         """
         epsilon = (
-            params.start_epsilon
+            agent_params.start_epsilon
         )  # Epsilon-greedy algorithm in initialized at 1 meaning every step is random at the start
         max_epsilon = (
-            params.start_epsilon
+            agent_params.start_epsilon
         )  # You can't explore more than 100% of the time
         min_epsilon = (
-            params.min_epsilon
+            agent_params.min_epsilon
         )  # At a minimum, we'll always explore 1% of the time
-        decay = params.decay_rate
+        decay = agent_params.decay_rate
 
-        model_path: str = os.path.join(params.savemodel_folder, "training", model_name)
-
-        every_n_steps_to_train_main_model = params.every_n_steps_to_train_main_model
-        every_m_steps_to_copy_main_weights_to_target_model = (
-            params.every_m_steps_to_copy_main_weights_to_target_model
+        model_path: str = os.path.join(
+            agent_params.savemodel_folder, "training", model_name
         )
-        train_batch_size = params.train_batch_size
-        min_replay_size = params.min_replay_size
-        total_episodes = params.total_episodes
 
-        learning_rate = params.learning_rate
-        discount_factor = params.gamma
+        every_n_steps_to_train_main_model = (
+            agent_params.every_n_steps_to_train_main_model
+        )
+        every_m_steps_to_copy_main_weights_to_target_model = (
+            agent_params.every_m_steps_to_copy_main_weights_to_target_model
+        )
+        train_batch_size = agent_params.train_batch_size
+        min_replay_size = agent_params.min_replay_size
+
+        learning_rate = agent_params.learning_rate
+        discount_factor = agent_params.gamma
         # 1a. initialize the main model, (updated every "every_n_steps_to_train_main_model" steps)
         main = DeepAgent(
             structure=dnn_structure,
@@ -311,16 +316,23 @@ class Reinforcement_DeepLearning:
         )
         target.copy_weights(main)
 
-        replay_memory_list = deque(maxlen=params.replay_memory_size)
+        replay_memory_list = deque(maxlen=agent_params.replay_memory_size)
 
         steps_to_update_target_model: int = 0
 
+        total_episodes = env_params.total_episodes
+        max_steps_allowed = env_params.n_max_steps
         for episode in range(total_episodes):
             total_training_rewards: float = 0
+            step_count:int = 0
             state, _ = env.reset()
             terminated: bool = False
 
             while not terminated:
+                step_count += 1
+                if step_count >= max_steps_allowed:
+                    logger.info(f"Reach max step allowed:{step_count}")
+                    break
                 steps_to_update_target_model += 1
                 if is_verbose:
                     env.render()

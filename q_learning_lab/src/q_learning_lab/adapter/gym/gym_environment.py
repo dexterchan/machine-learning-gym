@@ -58,12 +58,12 @@ class Fronzen_Lake_Environment:
 
 from ...domain.models.cart_pole_v1_models import (
     Action_Space as Cart_Pole_Action_Space,
-    Params as Cart_Pole_Params,
+    Env_Params,
 )
 
 
 class Cart_Pole_v1_Environment:
-    def __init__(self, params: Cart_Pole_Params):
+    def __init__(self, params: Env_Params):
         self.env = gym.make(
             id="CartPole-v1",  # Choose one of the existing environments
             max_episode_steps=params.n_max_steps,  # default=None, Maximum length of an episode (TimeLimit wrapper).
