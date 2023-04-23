@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
       - name: q-learning
-        image: registry.example.com/q_learning:0.1.0-bullseye-aarch64
+        image: registry.example.com/q-learning:0.1.0-bullseye-aarch64-2
         imagePullPolicy: Always
         volumeMounts:
         - name: q-learning-pvc
@@ -25,6 +25,13 @@ spec:
           - dummy
           - -c 
           - /var/task/config/cart_pole_v1.json
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 5Gi
+          requests:
+            cpu: 200m
+            memory: 2Gi
       volumes:
       - name: q-learning-pvc
         persistentVolumeClaim:
