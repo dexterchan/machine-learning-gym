@@ -1,0 +1,949 @@
+{
+  "version": "1.1",
+  "engine": "darwin|Transformer|1.40.1|latest|latest",
+  "containerized": false,
+  "host_distro": {
+    "name": "",
+    "version": "",
+    "display_name": "other"
+  },
+  "type": "build",
+  "state": "done",
+  "target_reference": "pigpiggcp/q_learning.fat:0.1.0-bullseye-x86_64",
+  "system": {
+    "type": "",
+    "release": "",
+    "distro": {
+      "name": "",
+      "version": "",
+      "display_name": ""
+    }
+  },
+  "source_image": {
+    "identity": {
+      "id": "sha256:51bb9cd321f9a4ce25e56d66b830cfab3914df16a47a2009b3657926c8857394",
+      "tags": [
+        "0.1.0-bullseye-x86_64"
+      ],
+      "names": [
+        "pigpiggcp/q_learning.fat:0.1.0-bullseye-x86_64"
+      ]
+    },
+    "size": 6271493200,
+    "size_human": "6.3 GB",
+    "create_time": "2023-04-23T14:19:34Z",
+    "docker_version": "20.10.23",
+    "architecture": "amd64",
+    "user": "appuser",
+    "os": "linux",
+    "env_vars": [
+      "PATH=/var/conda/miniconda/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "LANG=C.UTF-8",
+      "GPG_KEY=E3FF2839C048B25C084DEBE9B26995E310250568",
+      "PYTHON_VERSION=3.9.15",
+      "PYTHON_PIP_VERSION=22.0.4",
+      "PYTHON_SETUPTOOLS_VERSION=58.1.0",
+      "PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/66030fa03382b4914d4c4d0896961a0bdeeeb274/public/get-pip.py",
+      "PYTHON_GET_PIP_SHA256=1e501cf004eac1b7eb1f97266d28f995ae835d30250bec7f8850562703067dc6",
+      "APPUSER=appuser",
+      "MINICONDA_SCRIPT=Miniconda3-py39_4.12.0-Linux-x86_64.sh",
+      "CONDA_DIR=/var/conda",
+      "LD_LIBRARY_PATH=/var/conda/miniconda/lib:",
+      "PYTHONPATH=:/var/task"
+    ],
+    "container_entry": {
+      "exe_path": ""
+    }
+  },
+  "minified_image_size": 23903338,
+  "minified_image_size_human": "24 MB",
+  "minified_image": "pigpiggcp/q_learning:0.1.0-bullseye-x86_64",
+  "minified_image_has_data": true,
+  "minified_by": 262.368929393878,
+  "artifact_location": "/tmp/slim-state/.slim-state/images/51bb9cd321f9a4ce25e56d66b830cfab3914df16a47a2009b3657926c8857394/artifacts",
+  "container_report_name": "creport.json",
+  "seccomp_profile_name": "pigpiggcp-q_learning.fat-seccomp.json",
+  "apparmor_profile_name": "pigpiggcp-q_learning.fat-apparmor-profile",
+  "image_stack": [
+    {
+      "is_top_image": false,
+      "id": "sha256:bcff041736d417208afbd041a9d80555103d588554e6eed4bcdd5ce3cc318ebd",
+      "full_name": "python:3.9.15-bullseye",
+      "repo_name": "python",
+      "version_tag": "3.9.15-bullseye",
+      "raw_tags": [
+        "python:3.9.15-bullseye"
+      ],
+      "create_time": "2022-12-06T14:55:20Z",
+      "new_size": 915079907,
+      "new_size_human": "915 MB",
+      "instructions": [
+        {
+          "type": "ADD",
+          "time": "2022-12-06T01:20:41Z",
+          "is_nop": true,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 124118799,
+          "size_human": "124 MB",
+          "params": "file:553d20b03d45305e58cde07e0c259421bba044155ac90b4559e5cc0b69093347 in /",
+          "command_snippet": "ADD file:553d20b03d45305e58cde07e0c259421bba...",
+          "command_all": "ADD file:553d20b03d45305e58cde07e0c259421bba044155ac90b4559e5cc0b69093347 /",
+          "target": "/",
+          "source_type": "file",
+          "inst_set_time_bucket": "2022-12-06T09:15:00+08:00"
+        },
+        {
+          "type": "CMD",
+          "time": "2022-12-06T01:20:41Z",
+          "is_nop": true,
+          "is_exec_form": true,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "params": "[\"bash\"]\n",
+          "command_snippet": "CMD [\"bash\"]\n",
+          "command_all": "CMD [\"bash\"]\n",
+          "inst_set_time_bucket": "2022-12-06T09:15:00+08:00"
+        },
+        {
+          "type": "RUN",
+          "time": "2022-12-06T02:13:26Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 10700831,
+          "size_human": "11 MB",
+          "command_snippet": "RUN set -eux; \tapt-get update; \tapt-get inst...",
+          "command_all": "RUN set -eux; \tapt-get update; \tapt-get install -y --no-install-recommends \t\tca-certificates \t\tcurl \t\tnetbase \t\twget \t; \trm -rf /var/lib/apt/lists/*",
+          "system_commands": [
+            "set -eux",
+            "apt-get update",
+            "apt-get install -y --no-install-recommends ca-certificates curl netbase wget",
+            "rm -rf /var/lib/apt/lists/*"
+          ],
+          "inst_set_time_bucket": "2022-12-06T10:00:00+08:00",
+          "inst_set_time_index": 1
+        },
+        {
+          "type": "RUN",
+          "time": "2022-12-06T02:13:31Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 18954006,
+          "size_human": "19 MB",
+          "command_snippet": "RUN set -ex; \tif ! command -v gpg > /dev/nul...",
+          "command_all": "RUN set -ex; \tif ! command -v gpg > /dev/null; then \t\tapt-get update; \t\tapt-get install -y --no-install-recommends \t\t\tgnupg \t\t\tdirmngr \t\t; \t\trm -rf /var/lib/apt/lists/*; \tfi",
+          "system_commands": [
+            "set -ex",
+            "if ! command -v gpg > /dev/null",
+            "then apt-get update",
+            "apt-get install -y --no-install-recommends gnupg dirmngr",
+            "rm -rf /var/lib/apt/lists/*",
+            "fi"
+          ],
+          "inst_set_time_bucket": "2022-12-06T10:00:00+08:00",
+          "inst_set_time_index": 1
+        },
+        {
+          "type": "RUN",
+          "time": "2022-12-06T02:13:49Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 151956313,
+          "size_human": "152 MB",
+          "command_snippet": "RUN apt-get update && \\\n\tapt-get install -y ...",
+          "command_all": "RUN apt-get update && \\\n\tapt-get install -y --no-install-recommends \t\tgit \t\tmercurial \t\topenssh-client \t\tsubversion \t\t\t\tprocps && \\\n\trm -rf /var/lib/apt/lists/*",
+          "system_commands": [
+            "apt-get update",
+            "apt-get install -y --no-install-recommends git mercurial openssh-client subversion procps",
+            "rm -rf /var/lib/apt/lists/*"
+          ],
+          "inst_set_time_bucket": "2022-12-06T10:00:00+08:00",
+          "inst_set_time_index": 1
+        },
+        {
+          "type": "RUN",
+          "time": "2022-12-06T02:14:50Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 528953395,
+          "size_human": "529 MB",
+          "command_snippet": "RUN set -ex; \tapt-get update; \tapt-get insta...",
+          "command_all": "RUN set -ex; \tapt-get update; \tapt-get install -y --no-install-recommends \t\tautoconf \t\tautomake \t\tbzip2 \t\tdpkg-dev \t\tfile \t\tg++ \t\tgcc \t\timagemagick \t\tlibbz2-dev \t\tlibc6-dev \t\tlibcurl4-openssl-dev \t\tlibdb-dev \t\tlibevent-dev \t\tlibffi-dev \t\tlibgdbm-dev \t\tlibglib2.0-dev \t\tlibgmp-dev \t\tlibjpeg-dev \t\tlibkrb5-dev \t\tliblzma-dev \t\tlibmagickcore-dev \t\tlibmagickwand-dev \t\tlibmaxminddb-dev \t\tlibncurses5-dev \t\tlibncursesw5-dev \t\tlibpng-dev \t\tlibpq-dev \t\tlibreadline-dev \t\tlibsqlite3-dev \t\tlibssl-dev \t\tlibtool \t\tlibwebp-dev \t\tlibxml2-dev \t\tlibxslt-dev \t\tlibyaml-dev \t\tmake \t\tpatch \t\tunzip \t\txz-utils \t\tzlib1g-dev \t\t\t\t$( \t\t\tif apt-cache show 'default-libmysqlclient-dev' 2>/dev/null | grep -q '^Version:'; then \t\t\t\techo 'default-libmysqlclient-dev'; \t\t\telse \t\t\t\techo 'libmysqlclient-dev'; \t\t\tfi \t\t) \t; \trm -rf /var/lib/apt/lists/*",
+          "system_commands": [
+            "set -ex",
+            "apt-get update",
+            "apt-get install -y --no-install-recommends autoconf automake bzip2 dpkg-dev file g++ gcc imagemagick libbz2-dev libc6-dev libcurl4-openssl-dev libdb-dev libevent-dev libffi-dev libgdbm-dev libglib2.0-dev libgmp-dev libjpeg-dev libkrb5-dev liblzma-dev libmagickcore-dev libmagickwand-dev libmaxminddb-dev libncurses5-dev libncursesw5-dev libpng-dev libpq-dev libreadline-dev libsqlite3-dev libssl-dev libtool libwebp-dev libxml2-dev libxslt-dev libyaml-dev make patch unzip xz-utils zlib1g-dev $( if apt-cache show 'default-libmysqlclient-dev' 2>/dev/null | grep -q '^Version:'",
+            "then echo 'default-libmysqlclient-dev'",
+            "else echo 'libmysqlclient-dev'",
+            "fi )",
+            "rm -rf /var/lib/apt/lists/*"
+          ],
+          "inst_set_time_bucket": "2022-12-06T10:00:00+08:00",
+          "inst_set_time_index": 1
+        },
+        {
+          "type": "ENV",
+          "time": "2022-12-06T12:08:10Z",
+          "is_nop": true,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "params": "PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "command_snippet": "ENV PATH=/usr/local/bin:/usr/local/sbin:/usr...",
+          "command_all": "ENV PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "inst_set_time_bucket": "2022-12-06T20:00:00+08:00",
+          "inst_set_time_index": 2
+        },
+        {
+          "type": "ENV",
+          "time": "2022-12-06T12:08:10Z",
+          "is_nop": true,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "params": "LANG=C.UTF-8",
+          "command_snippet": "ENV LANG=C.UTF-8",
+          "command_all": "ENV LANG=C.UTF-8",
+          "inst_set_time_bucket": "2022-12-06T20:00:00+08:00",
+          "inst_set_time_index": 2
+        },
+        {
+          "type": "RUN",
+          "time": "2022-12-06T12:08:16Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 18483793,
+          "size_human": "18 MB",
+          "command_snippet": "RUN set -eux; \tapt-get update; \tapt-get inst...",
+          "command_all": "RUN set -eux; \tapt-get update; \tapt-get install -y --no-install-recommends \t\tlibbluetooth-dev \t\ttk-dev \t\tuuid-dev \t; \trm -rf /var/lib/apt/lists/*",
+          "system_commands": [
+            "set -eux",
+            "apt-get update",
+            "apt-get install -y --no-install-recommends libbluetooth-dev tk-dev uuid-dev",
+            "rm -rf /var/lib/apt/lists/*"
+          ],
+          "inst_set_time_bucket": "2022-12-06T20:00:00+08:00",
+          "inst_set_time_index": 2
+        },
+        {
+          "type": "ENV",
+          "time": "2022-12-06T14:48:38Z",
+          "is_nop": true,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "params": "GPG_KEY=E3FF2839C048B25C084DEBE9B26995E310250568",
+          "command_snippet": "ENV GPG_KEY=E3FF2839C048B25C084DEBE9B26995E3...",
+          "command_all": "ENV GPG_KEY=E3FF2839C048B25C084DEBE9B26995E310250568",
+          "inst_set_time_bucket": "2022-12-06T22:45:00+08:00",
+          "inst_set_time_index": 3
+        },
+        {
+          "type": "ENV",
+          "time": "2022-12-06T14:48:38Z",
+          "is_nop": true,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "params": "PYTHON_VERSION=3.9.15",
+          "command_snippet": "ENV PYTHON_VERSION=3.9.15",
+          "command_all": "ENV PYTHON_VERSION=3.9.15",
+          "inst_set_time_bucket": "2022-12-06T22:45:00+08:00",
+          "inst_set_time_index": 3
+        },
+        {
+          "type": "RUN",
+          "time": "2022-12-06T14:55:13Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 51736776,
+          "size_human": "52 MB",
+          "command_snippet": "RUN set -eux; \t\twget -O python.tar.xz \"https...",
+          "command_all": "RUN set -eux; \t\twget -O python.tar.xz \"https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz\"; \twget -O python.tar.xz.asc \"https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz.asc\"; \tGNUPGHOME=\"$(mktemp -d)\"; export GNUPGHOME; \tgpg --batch --keyserver hkps://keys.openpgp.org --recv-keys \"$GPG_KEY\"; \tgpg --batch --verify python.tar.xz.asc python.tar.xz; \tcommand -v gpgconf > /dev/null && \\\n\tgpgconf --kill all || :; \trm -rf \"$GNUPGHOME\" python.tar.xz.asc; \tmkdir -p /usr/src/python; \ttar --extract --directory /usr/src/python --strip-components=1 --file python.tar.xz; \trm python.tar.xz; \t\tcd /usr/src/python; \tgnuArch=\"$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)\"; \t./configure \t\t--build=\"$gnuArch\" \t\t--enable-loadable-sqlite-extensions \t\t--enable-optimizations \t\t--enable-option-checking=fatal \t\t--enable-shared \t\t--with-system-expat \t\t--without-ensurepip \t; \tnproc=\"$(nproc)\"; \tmake -j \"$nproc\" \t; \tmake install; \t\tbin=\"$(readlink -ve /usr/local/bin/python3)\"; \tdir=\"$(dirname \"$bin\")\"; \tmkdir -p \"/usr/share/gdb/auto-load/$dir\"; \tcp -vL Tools/gdb/libpython.py \"/usr/share/gdb/auto-load/$bin-gdb.py\"; \t\tcd /; \trm -rf /usr/src/python; \t\tfind /usr/local -depth \t\t\\( \t\t\t\\( -type d -a \\( -name test -o -name tests -o -name idle_test \\) \\) \t\t\t-o \\( -type f -a \\( -name '*.pyc' -o -name '*.pyo' -o -name 'libpython*.a' \\) \\) \t\t\\) -exec rm -rf '{}' + \t; \t\tldconfig; \t\tpython3 --version",
+          "system_commands": [
+            "set -eux; wget -O python.tar.xz \"https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz\"; wget -O python.tar.xz.asc \"https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz.asc\"; GNUPGHOME=\"$(mktemp -d)\"; export GNUPGHOME; gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys \"$GPG_KEY\"; gpg --batch --verify python.tar.xz.asc python.tar.xz; command -v gpgconf > /dev/null",
+            "gpgconf --kill all || :; rm -rf \"$GNUPGHOME\" python.tar.xz.asc; mkdir -p /usr/src/python; tar --extract --directory /usr/src/python --strip-components=1 --file python.tar.xz; rm python.tar.xz; cd /usr/src/python; gnuArch=\"$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)\"; ./configure --build=\"$gnuArch\" --enable-loadable-sqlite-extensions --enable-optimizations --enable-option-checking=fatal --enable-shared --with-system-expat --without-ensurepip ; nproc=\"$(nproc)\"; make -j \"$nproc\" ; make install; bin=\"$(readlink -ve /usr/local/bin/python3)\"; dir=\"$(dirname \"$bin\")\"; mkdir -p \"/usr/share/gdb/auto-load/$dir\"; cp -vL Tools/gdb/libpython.py \"/usr/share/gdb/auto-load/$bin-gdb.py\"; cd /; rm -rf /usr/src/python; find /usr/local -depth ( ( -type d -a ( -name test -o -name tests -o -name idle_test ) ) -o ( -type f -a ( -name '*.pyc' -o -name '*.pyo' -o -name 'libpython*.a' ) ) ) -exec rm -rf '{}' + ; ldconfig; python3 --version"
+          ],
+          "inst_set_time_bucket": "2022-12-06T22:45:00+08:00",
+          "inst_set_time_index": 3
+        },
+        {
+          "type": "RUN",
+          "time": "2022-12-06T14:55:14Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 32,
+          "size_human": "32 B",
+          "command_snippet": "RUN set -eux; \tfor src in idle3 pydoc3 pytho...",
+          "command_all": "RUN set -eux; \tfor src in idle3 pydoc3 python3 python3-config; do \t\tdst=\"$(echo \"$src\" | tr -d 3)\"; \t\t[ -s \"/usr/local/bin/$src\" ]; \t\t[ ! -e \"/usr/local/bin/$dst\" ]; \t\tln -svT \"$src\" \"/usr/local/bin/$dst\"; \tdone",
+          "system_commands": [
+            "set -eux",
+            "for src in idle3 pydoc3 python3 python3-config",
+            "do dst=\"$(echo \"$src\" | tr -d 3)\"",
+            "[ -s \"/usr/local/bin/$src\" ]",
+            "[ ! -e \"/usr/local/bin/$dst\" ]",
+            "ln -svT \"$src\" \"/usr/local/bin/$dst\"",
+            "done"
+          ],
+          "inst_set_time_bucket": "2022-12-06T22:45:00+08:00",
+          "inst_set_time_index": 3
+        },
+        {
+          "type": "ENV",
+          "time": "2022-12-06T14:55:14Z",
+          "is_nop": true,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "params": "PYTHON_PIP_VERSION=22.0.4",
+          "command_snippet": "ENV PYTHON_PIP_VERSION=22.0.4",
+          "command_all": "ENV PYTHON_PIP_VERSION=22.0.4",
+          "inst_set_time_bucket": "2022-12-06T22:45:00+08:00",
+          "inst_set_time_index": 3
+        },
+        {
+          "type": "ENV",
+          "time": "2022-12-06T14:55:14Z",
+          "is_nop": true,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "params": "PYTHON_SETUPTOOLS_VERSION=58.1.0",
+          "command_snippet": "ENV PYTHON_SETUPTOOLS_VERSION=58.1.0",
+          "command_all": "ENV PYTHON_SETUPTOOLS_VERSION=58.1.0",
+          "inst_set_time_bucket": "2022-12-06T22:45:00+08:00",
+          "inst_set_time_index": 3
+        },
+        {
+          "type": "ENV",
+          "time": "2022-12-06T14:55:14Z",
+          "is_nop": true,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "params": "PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/66030fa03382b4914d4c4d0896961a0bdeeeb274/public/get-pip.py",
+          "command_snippet": "ENV PYTHON_GET_PIP_URL=https://github.com/py...",
+          "command_all": "ENV PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/66030fa03382b4914d4c4d0896961a0bdeeeb274/public/get-pip.py",
+          "inst_set_time_bucket": "2022-12-06T22:45:00+08:00",
+          "inst_set_time_index": 3
+        },
+        {
+          "type": "ENV",
+          "time": "2022-12-06T14:55:14Z",
+          "is_nop": true,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 0,
+          "params": "PYTHON_GET_PIP_SHA256=1e501cf004eac1b7eb1f97266d28f995ae835d30250bec7f8850562703067dc6",
+          "command_snippet": "ENV PYTHON_GET_PIP_SHA256=1e501cf004eac1b7eb...",
+          "command_all": "ENV PYTHON_GET_PIP_SHA256=1e501cf004eac1b7eb1f97266d28f995ae835d30250bec7f8850562703067dc6",
+          "inst_set_time_bucket": "2022-12-06T22:45:00+08:00",
+          "inst_set_time_index": 3
+        },
+        {
+          "type": "RUN",
+          "time": "2022-12-06T14:55:20Z",
+          "is_nop": false,
+          "local_image_exists": false,
+          "layer_index": 0,
+          "size": 10175962,
+          "size_human": "10 MB",
+          "command_snippet": "RUN set -eux; \t\twget -O get-pip.py \"$PYTHON_...",
+          "command_all": "RUN set -eux; \t\twget -O get-pip.py \"$PYTHON_GET_PIP_URL\"; \techo \"$PYTHON_GET_PIP_SHA256 *get-pip.py\" | sha256sum -c -; \t\texport PYTHONDONTWRITEBYTECODE=1; \t\tpython get-pip.py \t\t--disable-pip-version-check \t\t--no-cache-dir \t\t--no-compile \t\t\"pip==$PYTHON_PIP_VERSION\" \t\t\"setuptools==$PYTHON_SETUPTOOLS_VERSION\" \t; \trm -f get-pip.py; \t\tpip --version",
+          "system_commands": [
+            "set -eux",
+            "wget -O get-pip.py \"$PYTHON_GET_PIP_URL\"",
+            "echo \"$PYTHON_GET_PIP_SHA256 *get-pip.py\" | sha256sum -c -",
+            "export PYTHONDONTWRITEBYTECODE=1",
+            "python get-pip.py --disable-pip-version-check --no-cache-dir --no-compile \"pip==$PYTHON_PIP_VERSION\" \"setuptools==$PYTHON_SETUPTOOLS_VERSION\"",
+            "rm -f get-pip.py",
+            "pip --version"
+          ],
+          "inst_set_time_bucket": "2022-12-06T22:45:00+08:00",
+          "inst_set_time_index": 3
+        },
+        {
+          "type": "CMD",
+          "time": "2022-12-06T14:55:20Z",
+          "is_last_instruction": true,
+          "is_nop": true,
+          "is_exec_form": true,
+          "local_image_exists": true,
+          "layer_index": 0,
+          "size": 0,
+          "params": "[\"python3\"]\n",
+          "command_snippet": "CMD [\"python3\"]\n",
+          "command_all": "CMD [\"python3\"]\n",
+          "raw_tags": [
+            "python:3.9.15-bullseye"
+          ],
+          "inst_set_time_bucket": "2022-12-06T22:45:00+08:00",
+          "inst_set_time_index": 3
+        }
+      ]
+    },
+    {
+      "is_top_image": true,
+      "id": "sha256:51bb9cd321f9a4ce25e56d66b830cfab3914df16a47a2009b3657926c8857394",
+      "full_name": "pigpiggcp/q_learning.fat:0.1.0-bullseye-x86_64",
+      "repo_name": "pigpiggcp/q_learning.fat",
+      "version_tag": "0.1.0-bullseye-x86_64",
+      "raw_tags": [
+        "pigpiggcp/q_learning.fat:0.1.0-bullseye-x86_64"
+      ],
+      "create_time": "2023-04-23T14:19:34Z",
+      "new_size": 5356413293,
+      "new_size_human": "5.4 GB",
+      "base_image_id": "sha256:bcff041736d417208afbd041a9d80555103d588554e6eed4bcdd5ce3cc318ebd",
+      "instructions": [
+        {
+          "type": "ARG",
+          "time": "2023-04-23T14:14:00Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:b7cb84a9de2010296c600744894a1375e24c07aa9bf67703f66714b0b49b59fc",
+          "layer_index": 0,
+          "size": 0,
+          "params": "RUN_DIR",
+          "command_snippet": "ARG RUN_DIR",
+          "command_all": "ARG RUN_DIR",
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "ARG",
+          "time": "2023-04-23T14:14:00Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:92c14b9c15b10a1ea8064b21b65c7ee1e6d6189ffe80ed446256cd5bc723ff5f",
+          "layer_index": 0,
+          "size": 0,
+          "params": "RUN_USER",
+          "command_snippet": "ARG RUN_USER",
+          "command_all": "ARG RUN_USER",
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "ARG",
+          "time": "2023-04-23T14:14:00Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:43d44e8dd74487876cf4c2abec13e81cc9ac257a7bde13b55cc0195cc5ecf194",
+          "layer_index": 0,
+          "size": 0,
+          "params": "CONDA_VERSION",
+          "command_snippet": "ARG CONDA_VERSION",
+          "command_all": "ARG CONDA_VERSION",
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "ARG",
+          "time": "2023-04-23T14:14:00Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:a741fbc0dd95f9dfc9bf60b8c633a65d00c7ae47e193de144fc379d6bc788458",
+          "layer_index": 0,
+          "size": 0,
+          "params": "ARCH",
+          "command_snippet": "ARG ARCH",
+          "command_all": "ARG ARCH",
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "ENV",
+          "time": "2023-04-23T14:14:01Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:93c9451b7b01a4a3890bb03d1d712b74af99bbfa14747c445cbdca657935a277",
+          "layer_index": 0,
+          "size": 0,
+          "params": "APPUSER=appuser",
+          "command_snippet": "ENV APPUSER=appuser",
+          "command_all": "ENV APPUSER=appuser",
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "ENV",
+          "time": "2023-04-23T14:14:01Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:203885eab5f25762091a88ea09606f745e7eba6d8f97b519debf155d54fa4a65",
+          "layer_index": 0,
+          "size": 0,
+          "params": "MINICONDA_SCRIPT=Miniconda3-py39_4.12.0-Linux-x86_64.sh",
+          "command_snippet": "ENV MINICONDA_SCRIPT=Miniconda3-py39_4.12.0-...",
+          "command_all": "ENV MINICONDA_SCRIPT=Miniconda3-py39_4.12.0-Linux-x86_64.sh",
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:14:22Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:4235f116593ddf22ba3dd2fef5e345e768ceb9d7151915b08608790390b8af14",
+          "layer_index": 0,
+          "size": 120796438,
+          "size_human": "121 MB",
+          "command_snippet": "RUN apt-get update -y && apt-get upgrade -y",
+          "command_all": "RUN apt-get update -y && apt-get upgrade -y",
+          "system_commands": [
+            "apt-get update -y",
+            "apt-get upgrade -y"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:14:23Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:c5ab9f743edd1dc82651b1a46a28cd24882960b846f43f14822da053c8de278d",
+          "layer_index": 0,
+          "size": 0,
+          "command_snippet": "RUN mkdir -p ${RUN_DIR}",
+          "command_all": "RUN mkdir -p ${RUN_DIR}",
+          "system_commands": [
+            "mkdir -p ${RUN_DIR}"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:14:24Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:2a8d96342c99cb67641133f86b00416d989b6b69441fc7b78f5101bd90995f35",
+          "layer_index": 0,
+          "size": 3244613,
+          "size_human": "3.2 MB",
+          "command_snippet": "RUN groupadd --system --gid=9999 ${APPUSER} ...",
+          "command_all": "RUN groupadd --system --gid=9999 ${APPUSER} && useradd --system --home-dir $RUN_DIR --uid=9999 --gid=${APPUSER} ${APPUSER}",
+          "system_commands": [
+            "groupadd --system --gid=9999 ${APPUSER}",
+            "useradd --system --home-dir $RUN_DIR --uid=9999 --gid=${APPUSER} ${APPUSER}"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:14:30Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:a406a59030ae482bdd81e71084b40c7fc45a2da13b03c5a9c90acbf95a72462a",
+          "layer_index": 0,
+          "size": 37920942,
+          "size_human": "38 MB",
+          "command_snippet": "RUN apt-get install -y python3-pip",
+          "command_all": "RUN apt-get install -y python3-pip",
+          "system_commands": [
+            "apt-get install -y python3-pip"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "ENV",
+          "time": "2023-04-23T14:14:30Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:1a85ff3b55fa247650ba3df5e290b612f78528f02ce446cc2d0c0463d8a14205",
+          "layer_index": 0,
+          "size": 0,
+          "params": "CONDA_DIR=/var/conda",
+          "command_snippet": "ENV CONDA_DIR=/var/conda",
+          "command_all": "ENV CONDA_DIR=/var/conda",
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:14:52Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:0bc1e1f360528c1237ab1ca0493a2fb13ed1f57eeef50622b48b93d2699608c9",
+          "layer_index": 0,
+          "size": 391946921,
+          "size_human": "392 MB",
+          "command_snippet": "RUN mkdir -p $CONDA_DIR && apt-get install -...",
+          "command_all": "RUN mkdir -p $CONDA_DIR && apt-get install -y wget && wget -O ${MINICONDA_SCRIPT} https://repo.anaconda.com/miniconda/${MINICONDA_SCRIPT} && apt-get remove -y wget && sh ${MINICONDA_SCRIPT} -b -p $CONDA_DIR/miniconda -f && rm -Rf ${MINICONDA_SCRIPT}",
+          "system_commands": [
+            "mkdir -p $CONDA_DIR",
+            "apt-get install -y wget",
+            "wget -O ${MINICONDA_SCRIPT} https://repo.anaconda.com/miniconda/${MINICONDA_SCRIPT}",
+            "apt-get remove -y wget",
+            "sh ${MINICONDA_SCRIPT} -b -p $CONDA_DIR/miniconda -f",
+            "rm -Rf ${MINICONDA_SCRIPT}"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "ENV",
+          "time": "2023-04-23T14:14:53Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:b0ae15fa573eee160de806896fc4b9da35a615d7df7073d0c68e207815d029f9",
+          "layer_index": 0,
+          "size": 0,
+          "params": "PATH=/var/conda/miniconda/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "command_snippet": "ENV PATH=/var/conda/miniconda/bin:/usr/local...",
+          "command_all": "ENV PATH=/var/conda/miniconda/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "ENV",
+          "time": "2023-04-23T14:14:53Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:d2003184166f67d8bbc72cde4ef61aed8ea5740ed274c9c40ebfc2163c03d31a",
+          "layer_index": 0,
+          "size": 0,
+          "params": "LD_LIBRARY_PATH=/var/conda/miniconda/lib:",
+          "command_snippet": "ENV LD_LIBRARY_PATH=/var/conda/miniconda/lib...",
+          "command_all": "ENV LD_LIBRARY_PATH=/var/conda/miniconda/lib:",
+          "inst_set_time_bucket": "2023-04-23T22:00:00+08:00",
+          "inst_set_time_index": 4
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:15:28Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:3c96e01ee3e067868eec38b86f0fa8817cab8585792b786bcecc566332b25f46",
+          "layer_index": 0,
+          "size": 531069280,
+          "size_human": "531 MB",
+          "command_snippet": "RUN eval $(conda shell.bash hook) && chmod 7...",
+          "command_all": "RUN eval $(conda shell.bash hook) && chmod 755 $CONDA_DIR && chown -R ${APPUSER}:${APPUSER} $CONDA_DIR && conda init",
+          "system_commands": [
+            "eval $(conda shell.bash hook)",
+            "chmod 755 $CONDA_DIR",
+            "chown -R ${APPUSER}:${APPUSER} $CONDA_DIR",
+            "conda init"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:15:30Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:9602acef9c735ab58b39db7186d633bef28d5611c836b662aeaded098320b532",
+          "layer_index": 0,
+          "size": 0,
+          "command_snippet": "RUN chown -R ${APPUSER}:${APPUSER} $RUN_DIR",
+          "command_all": "RUN chown -R ${APPUSER}:${APPUSER} $RUN_DIR",
+          "system_commands": [
+            "chown -R ${APPUSER}:${APPUSER} $RUN_DIR"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "USER",
+          "time": "2023-04-23T14:15:30Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:2e2d545ee663e9bce517853c031530862efc19fd4bfd73ec7e085aa12dc5b2a6",
+          "layer_index": 0,
+          "size": 0,
+          "params": "appuser",
+          "command_snippet": "USER appuser",
+          "command_all": "USER appuser",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:15:31Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:140f04444876e824ff22004eab8883089d7bf14b1934e98bed22f9545fc0e576",
+          "layer_index": 0,
+          "size": 39,
+          "size_human": "39 B",
+          "command_snippet": "RUN conda config --add channels conda-forge",
+          "command_all": "RUN conda config --add channels conda-forge",
+          "system_commands": [
+            "conda config --add channels conda-forge"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:16:09Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:00828b7c0ca5c785aa3d1f65a44bd920df8b951e0d011a67af2236e1869d90c1",
+          "layer_index": 0,
+          "size": 378486090,
+          "size_human": "378 MB",
+          "command_snippet": "RUN conda install mamba -c conda-forge -y",
+          "command_all": "RUN conda install mamba -c conda-forge -y",
+          "system_commands": [
+            "conda install mamba -c conda-forge -y"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "ARG",
+          "time": "2023-04-23T14:16:10Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:9aa0b48fbbfbe13f75e9236d4aab5697e8c3969bbfce4f282761a9941a8b36e0",
+          "layer_index": 0,
+          "size": 0,
+          "params": "RUN_DIR",
+          "command_snippet": "ARG RUN_DIR",
+          "command_all": "ARG RUN_DIR",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "ARG",
+          "time": "2023-04-23T14:16:10Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:6409ec96b5e8412e749e9f52c0203207e2bbd3464e514f1c81ab82831865a840",
+          "layer_index": 0,
+          "size": 0,
+          "params": "RUN_USER",
+          "command_snippet": "ARG RUN_USER",
+          "command_all": "ARG RUN_USER",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "ARG",
+          "time": "2023-04-23T14:16:10Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:d8b831df42850e7627d63788337b64901d855e4827ddcee0a4d303df378a2654",
+          "layer_index": 0,
+          "size": 0,
+          "params": "ARCH",
+          "command_snippet": "ARG ARCH",
+          "command_all": "ARG ARCH",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "WORKDIR",
+          "time": "2023-04-23T14:16:10Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:6d7795c839e6bb6533bccf6204918cb01619c0a3ae1830ed4142eb72a6737f8b",
+          "layer_index": 0,
+          "size": 0,
+          "params": "/var/task",
+          "command_snippet": "WORKDIR /var/task",
+          "command_all": "WORKDIR /var/task",
+          "system_commands": [
+            "mkdir -p /var/task"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "COPY",
+          "time": "2023-04-23T14:16:10Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:47983e10c4e310667b5fa1859cc74aec31db83cc1e32fec1c8225e951443e32a",
+          "layer_index": 0,
+          "size": 191,
+          "size_human": "191 B",
+          "params": "--chown=appuser:appuserfile:7c8fbb97de8941c138fc0b3a5727740bc5de91062e2d30919cd24ccc1e846e87 in /var/task/requirements-linux-x86_64.txt",
+          "command_snippet": "COPY --chown=appuser:appuserfile:7c8fbb97de8...",
+          "command_all": "COPY --chown=appuser:appuserfile:7c8fbb97de8941c138fc0b3a5727740bc5de91062e2d30919cd24ccc1e846e87 /var/task/requirements-linux-x86_64.txt",
+          "target": "/var/task/requirements-linux-x86_64.txt",
+          "source_type": "--chown=appuser",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:19:26Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:d0920b02d5ed5c296e160a6e231b69261ed30c75c38bc3b22450738538954243",
+          "layer_index": 0,
+          "size": 3892805533,
+          "size_human": "3.9 GB",
+          "command_snippet": "RUN mamba install -y -c conda-forge --file r...",
+          "command_all": "RUN mamba install -y -c conda-forge --file requirements-linux-${ARCH}.txt",
+          "system_commands": [
+            "mamba install -y -c conda-forge --file requirements-linux-${ARCH}.txt"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:19:33Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:87d019c511ab1ec7f49320be3a0b1fef0981e66f56474b7e4cf3594023de3e3f",
+          "layer_index": 0,
+          "size": 46447,
+          "size_human": "46 kB",
+          "command_snippet": "RUN pip install pygame==2.3.0",
+          "command_all": "RUN pip install pygame==2.3.0",
+          "system_commands": [
+            "pip install pygame==2.3.0"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "ARG",
+          "time": "2023-04-23T14:19:33Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:227657b8b086ef3b14154685f87348c0c1f24f2d0a1a5020e87d05570aae3939",
+          "layer_index": 0,
+          "size": 0,
+          "params": "RUN_DIR",
+          "command_snippet": "ARG RUN_DIR",
+          "command_all": "ARG RUN_DIR",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "ARG",
+          "time": "2023-04-23T14:19:33Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:c6d61bca29e1f3b9cc81ab01d3509249c704d6def02b21362a72f52bc94b5627",
+          "layer_index": 0,
+          "size": 0,
+          "params": "RUN_USER",
+          "command_snippet": "ARG RUN_USER",
+          "command_all": "ARG RUN_USER",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "ARG",
+          "time": "2023-04-23T14:19:33Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:54109cb373fe1a4dee1eabce17c79ce82a5e23d1ee269ce3333d589d07314eed",
+          "layer_index": 0,
+          "size": 0,
+          "params": "ARCH",
+          "command_snippet": "ARG ARCH",
+          "command_all": "ARG ARCH",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "COPY",
+          "time": "2023-04-23T14:19:33Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:315cdd4ff94b6928bcba1950aa08a761964a256de64a702abc78f965a7aaee83",
+          "layer_index": 0,
+          "size": 95998,
+          "size_human": "96 kB",
+          "params": "--chown=appuser:appuserdir:3f0042d2c5def4a9b665dc3c1beb12ef5cdd1d84c11b5c3b193cfa633996f9b7 in /var/task/q_learning_lab",
+          "command_snippet": "COPY --chown=appuser:appuserdir:3f0042d2c5de...",
+          "command_all": "COPY --chown=appuser:appuserdir:3f0042d2c5def4a9b665dc3c1beb12ef5cdd1d84c11b5c3b193cfa633996f9b7 /var/task/q_learning_lab",
+          "target": "/var/task/q_learning_lab",
+          "source_type": "--chown=appuser",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "COPY",
+          "time": "2023-04-23T14:19:34Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:d245494369acb458a9d17aa56e0d005fa9022f7e332915084eff5ffca61964a8",
+          "layer_index": 0,
+          "size": 801,
+          "size_human": "801 B",
+          "params": "--chown=appuser:appusermulti:49f1a1149a4801cfeaac433c92549916609c2130325cf06f719c20dfd46c4b3a in /var/task/config/samples/",
+          "command_snippet": "COPY --chown=appuser:appusermulti:49f1a1149a...",
+          "command_all": "COPY --chown=appuser:appusermulti:49f1a1149a4801cfeaac433c92549916609c2130325cf06f719c20dfd46c4b3a /var/task/config/samples/",
+          "target": "/var/task/config/samples/",
+          "source_type": "--chown=appuser",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "ENV",
+          "time": "2023-04-23T14:19:34Z",
+          "is_nop": true,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:2ae959d040a6ff300cc24344797e39a8404d2b0de48c6fc5b2657622da389c9d",
+          "layer_index": 0,
+          "size": 0,
+          "params": "PYTHONPATH=:/var/task",
+          "command_snippet": "ENV PYTHONPATH=:/var/task",
+          "command_all": "ENV PYTHONPATH=:/var/task",
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "RUN",
+          "time": "2023-04-23T14:19:34Z",
+          "is_nop": false,
+          "local_image_exists": true,
+          "intermediate_image_id": "sha256:94891766e5969addc46060eff5dc66b6e3e4d6ddd5861f1aaf76c64a53a381ac",
+          "layer_index": 0,
+          "size": 0,
+          "command_snippet": "RUN mkdir -p ${RUN_DIR}/workspaces",
+          "command_all": "RUN mkdir -p ${RUN_DIR}/workspaces",
+          "system_commands": [
+            "mkdir -p ${RUN_DIR}/workspaces"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        },
+        {
+          "type": "WORKDIR",
+          "time": "2023-04-23T14:19:34Z",
+          "is_last_instruction": true,
+          "is_nop": true,
+          "local_image_exists": true,
+          "layer_index": 0,
+          "size": 0,
+          "params": "/var/task/workspaces",
+          "command_snippet": "WORKDIR /var/task/workspaces",
+          "command_all": "WORKDIR /var/task/workspaces",
+          "system_commands": [
+            "mkdir -p /var/task/workspaces"
+          ],
+          "raw_tags": [
+            "pigpiggcp/q_learning.fat:0.1.0-bullseye-x86_64"
+          ],
+          "inst_set_time_bucket": "2023-04-23T22:15:00+08:00",
+          "inst_set_time_index": 5
+        }
+      ]
+    }
+  ],
+  "image_created": true,
+  "image_build_engine": "docker"
+}

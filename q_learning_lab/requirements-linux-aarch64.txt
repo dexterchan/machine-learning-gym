@@ -1,0 +1,12 @@
+gymnasium==0.27.1
+numpy==1.24.2
+matplotlib==3.5.2
+cachetools==4.2.2
+python-json-logger==2.0.1 #quick solution as json logging
+seaborn==0.12.2
+
+
+#tensorflow-cpu-aws==2.12.0 #For arm 64 Linux, aws manages it.... https://www.tensorflow.org/install/pip
+tensorflow==2.11.0
+#pygame==2.3.0
+ipython==8.12.0

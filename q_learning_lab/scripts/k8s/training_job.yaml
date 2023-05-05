@@ -1,0 +1,49 @@
+# Create a job to run the training
+# Mount Persistent Volume Claim "q-learning-pvc" under "/var/task/_static/"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: q-learning-job
+  namespace: q-learning
+spec:
+  template:
+    spec:
+      containers:
+      - name: q-learning
+        image: registry.example.com/q-learning:0.1.0-bullseye-aarch64-2
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: q-learning-pvc
+          mountPath: /var/task/workspaces/_static/
+        - name: q-learning-config-volume
+          mountPath: /var/task/config/
+        command:
+          - python3
+          - -m
+          - q_learning_lab
+          - -b 
+          - dummy
+          - -c 
+          - /var/task/config/cart_pole_v1.json
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 5Gi
+          requests:
+            cpu: 200m
+            memory: 2Gi
+      volumes:
+      - name: q-learning-pvc
+        persistentVolumeClaim:
+          claimName: q-learning-pvc
+      # Mount config map "q-learning-config" under "/var/task/config/"
+      - name: q-learning-config-volume
+        configMap:
+          name: q-learning-config
+          items:
+          - key: cart_pole_v1.json
+            path: cart_pole_v1.json
+          - key: cart_pole_v1_strategic.json
+            path: cart_pole_v1_strategic.json
+      restartPolicy: Never
+  backoffLimit: 4

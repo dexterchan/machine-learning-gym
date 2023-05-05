@@ -26,6 +26,11 @@ class Params(NamedTuple):
     train_batch_size: int = 64 * 2  # Size of batch taken from replay memory
 
 
+class Env_Params(NamedTuple):
+    total_episodes: int  # Total episodes
+    n_max_steps: int  # Max steps per episode
+
+
 class Action_Space(int, Enum):
     LEFT = 0
     RIGHT = 1

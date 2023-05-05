@@ -1,0 +1,20 @@
+#Create k8s name space q-learning
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: q-learning
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: q-learning-pvc
+  namespace: q-learning
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+---

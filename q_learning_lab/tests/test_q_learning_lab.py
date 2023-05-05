@@ -44,7 +44,9 @@ class TestQ_learning_lab(unittest.TestCase):
 
     def test_create_env(self):
         """Test something."""
-        env = create_execute_environment(arena="frozen_lake", params=self.params)
+        env = create_execute_environment(
+            arena="frozen_lake", params=self.params._asdict()
+        )
         assert env is not None
         logger.debug(env.get_description())
         print(type(env.get_description()))
@@ -57,7 +59,9 @@ class TestQ_learning_lab(unittest.TestCase):
 
     def test_random_walk(self):
         """Test something."""
-        env = create_execute_environment(arena="frozen_lake", params=self.params)
+        env = create_execute_environment(
+            arena="frozen_lake", params=self.params._asdict()
+        )
         assert env is not None
         agent = Agent(
             learning_rate=self.params.learning_rate,
@@ -68,7 +72,9 @@ class TestQ_learning_lab(unittest.TestCase):
 
     def test_train(self):
         """Test something."""
-        env = create_execute_environment(arena="frozen_lake", params=self.params)
+        env = create_execute_environment(
+            arena="frozen_lake", params=self.params._asdict()
+        )
         assert env is not None
         agent = Agent(
             learning_rate=self.params.learning_rate,
@@ -88,7 +94,9 @@ class TestQ_learning_lab(unittest.TestCase):
 
     def test_evaluate(self):
         """Test something."""
-        env = create_execute_environment(arena="frozen_lake", params=self.params)
+        env = create_execute_environment(
+            arena="frozen_lake", params=self.params._asdict()
+        )
         assert env is not None
         # agent = Agent(
         #     learning_rate=self.params.learning_rate,
