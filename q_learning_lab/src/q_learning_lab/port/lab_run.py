@@ -26,9 +26,9 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool) -> N
     )
 
     deepagent_dict = Reinforcement_DeepLearning.train(
-        env=env,
+        train_env=env,
         agent_params=_agent_config,
-        env_params=env.env_params,
+        train_env_params=env.env_params,
         dnn_structure=dnn_structure,
         is_verbose=is_verbose,
     )

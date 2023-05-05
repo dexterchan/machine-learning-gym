@@ -72,7 +72,7 @@ class DeepAgent:
         return self._model
 
     def save_agent(
-        self, path: str, episode: int, epsilon: float, total_reward: float
+        self, path: str, episode: int, epsilon: float, total_rewards_history: list[float]
     ) -> None:
         """save the agent into file
             it will save into two files:
@@ -81,6 +81,9 @@ class DeepAgent:
 
         Args:
             path (str): file path
+            episode (int): last episode
+            epsilon (float): last epsilon
+            total_rewards_history (list[float]): total rewards history
         """
         tensorflow_model_path = path + ".tfm"
         agent_path = path + ".json"
@@ -90,7 +93,7 @@ class DeepAgent:
             "learning_rate": self.learning_rate,
             "discounting_factor": self.discounting_factor,
             "epsilon": epsilon,
-            "total_reward": total_reward,
+            "total_rewards_history": total_rewards_history,
         }
         with open(agent_path, "w") as f:
             json.dump(model_dict, f)
@@ -224,8 +227,19 @@ class DeepAgent:
 
         return action
 
-    def play(self, env: Execute_Environment, max_step: int) -> tuple[float, bool]:
-        """play the game"""
+    def play(self, env: Execute_Environment, max_step: int, epsilon:float=0, is_exploit_only=True) -> tuple[float, bool]:
+        """
+        Play the game with the agent
+        
+        Args:
+            env (Execute_Environment): Execute environment
+            max_step (int): maximum step to play
+            epsilon (float, optional): epsilon value for exploration (0,1). Smaller value mean less likely exploration. Defaults to 0.
+            is_exploit_only (bool, optional): exploit only. Defaults to True.
+            
+        Returns:
+            tuple[float, bool]: total reward, is_complete
+        """
 
         state, _ = env.reset()
         total_reward = 0
@@ -236,7 +250,7 @@ class DeepAgent:
                 time.sleep(0.2)
             # Get the action
             action = self.epsilon_greedy(
-                env=env, state=state, epsilon=0, is_exploit_only=True
+                env=env, state=state, epsilon=epsilon, is_exploit_only=is_exploit_only
             )
 
             next_state, reward, terminated, truncated, info = env.step(action=action)
@@ -261,25 +275,63 @@ class DeepAgent:
 
 
 class Reinforcement_DeepLearning:
+    SAVE_AGENT_EVERY_N_EPISODE:int = 50
+
+    @staticmethod
+    def _create_new_deep_agent(
+        dnn_structure:SequentialStructure, 
+        learning_rate:float, 
+        discount_factor:float, 
+        is_verbose:bool=False) -> DeepAgent:
+        """ Create new sequential structure
+        """
+        return  DeepAgent(
+            structure=dnn_structure,
+            learning_rate=learning_rate,
+            discount_factor=discount_factor,
+            is_verbose=is_verbose,
+        )
+    
+    @staticmethod
+    def _load_existing_agent(
+        model_path:str
+    ) -> tuple[DeepAgent, int, float]:
+        """ Load existing agent
+        
+        Args:
+            model_path (str): model path
+            
+        Returns:
+            tuple[DeepAgent, int, float, list[float] ]: agent, last episode, last epsilon, total_rewards_history
+        """
+        cloned_agent, last_run_para = DeepAgent.load_agent(path=model_path)
+        episode = last_run_para["episode"]
+        epsilon = last_run_para["epsilon"]
+        total_rewards_history = last_run_para["total_rewards_history"]
+
+        return cloned_agent, episode, epsilon, total_rewards_history
+
     @staticmethod
     def train(
-        env: Execute_Environment,
+        train_env: Execute_Environment,
         agent_params: NamedTuple,
-        env_params: NamedTuple,
-        dnn_structure: SequentialStructure,
+        train_env_params: NamedTuple,
+        dnn_structure: SequentialStructure|str,
         is_verbose: bool = False,
         model_name: str = "CartPole-v1",
     ) -> dict[str, DeepAgent]:
-        """_summary_
+        """ training the model in batch
 
         Args:
-            env (Execute_Environment): _description_
+            train_env (Execute_Environment): execution environment with training data
             agent_params (NamedTuple): agent parameters
-            env_params (NamedTuple): environment parameters
+            train_env_params (NamedTuple): environment parameters
+            dnn_structure (SequentialStructure|str): sequential structure or model path
             is_verbose (bool, optional): render the environment during training. Defaults to False.
+            model_name (str, optional): model name of the environment. Defaults to "CartPole-v1".
 
         Returns:
-            dict[str,DeepAgent]: _description_
+            dict[str,DeepAgent]: dictionary of agents -> {"main": main, "episode": episode, "epsilon": epsilon, "target": target}
         """
         epsilon = (
             agent_params.start_epsilon
@@ -307,33 +359,59 @@ class Reinforcement_DeepLearning:
 
         learning_rate = agent_params.learning_rate
         discount_factor = agent_params.gamma
-        # 1a. initialize the main model, (updated every "every_n_steps_to_train_main_model" steps)
-        main = DeepAgent(
-            structure=dnn_structure,
-            learning_rate=learning_rate,
-            discount_factor=discount_factor,
-            is_verbose=is_verbose,
-        )
-        # 1b. initialize the target model, (updated every "every_m_steps_to_copy_main_weights_to_target_model" steps)
-        target = DeepAgent(
-            structure=dnn_structure,
-            learning_rate=learning_rate,
-            discount_factor=discount_factor,
-            is_verbose=False,
-        )
+
+        episode:int = 1
+        total_training_rewards_history = []
+        
+        if isinstance(dnn_structure, str):
+            # Overwriting episode and epsilon here after loading model
+            logger.info(f"Load existing {model_name} model from {dnn_structure}")
+            main, _episode, _epsilon, _reward_history = Reinforcement_DeepLearning._load_existing_agent(
+                model_path=dnn_structure
+            )
+            target, _, _, _ = Reinforcement_DeepLearning._load_existing_agent(
+                model_path=dnn_structure
+            )
+            logger.info(
+                "Load existing model from %s, episode: %s, epsilon: %s",
+                dnn_structure,
+                _episode,
+                _epsilon,
+            )
+            episode = 1 + _episode
+            epsilon = _epsilon
+            total_training_rewards_history.extend(_reward_history)
+        else:
+            # 1a. initialize the main model, (updated every "every_n_steps_to_train_main_model" steps)
+            main = Reinforcement_DeepLearning._create_new_deep_agent(
+                dnn_structure=dnn_structure,
+                learning_rate=learning_rate,
+                discount_factor=discount_factor,
+                is_verbose=is_verbose,
+            )
+            # 1b. initialize the target model, (updated every "every_m_steps_to_copy_main_weights_to_target_model" steps)
+            target = Reinforcement_DeepLearning._create_new_deep_agent(
+                dnn_structure=dnn_structure,
+                learning_rate=learning_rate,
+                discount_factor=discount_factor,
+                is_verbose=False,
+            )
         target.copy_weights(main)
 
         replay_memory_list = deque(maxlen=agent_params.replay_memory_size)
 
         steps_to_update_target_model: int = 0
 
-        total_episodes = env_params.total_episodes
-        max_steps_allowed = env_params.n_max_steps
-        for episode in range(total_episodes):
+        total_episodes = train_env_params.total_episodes
+        max_steps_allowed = train_env_params.n_max_steps
+
+        
+        for episode in range(episode, episode + total_episodes):
             total_training_rewards: float = 0
             step_count:int = 0
-            state, _ = env.reset()
+            state, _ = train_env.reset()
             terminated: bool = False
+            logger.info(f"Training Episode: {episode}")
 
             while not terminated:
                 step_count += 1
@@ -342,12 +420,12 @@ class Reinforcement_DeepLearning:
                     break
                 steps_to_update_target_model += 1
                 if is_verbose:
-                    env.render()
+                    train_env.render()
 
                 # 2. Explore with Epsilon Greedy exploration
-                action = main.epsilon_greedy(env=env, state=state, epsilon=epsilon)
+                action = main.epsilon_greedy(env=train_env, state=state, epsilon=epsilon)
 
-                next_state, reward, terminated, truncated, info = env.step(
+                next_state, reward, terminated, truncated, info = train_env.step(
                     action=action
                 )
                 replay_memory_list.append(
@@ -399,14 +477,16 @@ class Reinforcement_DeepLearning:
             epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(
                 -decay * episode
             )
-            if episode % 10 == 0:
+            total_training_rewards_history.append(total_training_rewards)
+            if episode % Reinforcement_DeepLearning.SAVE_AGENT_EVERY_N_EPISODE == 0:
                 main.save_agent(
                     path=f"{model_path}_{episode}",
                     episode=episode,
                     epsilon=epsilon,
-                    total_reward=total_training_rewards,
+                    total_rewards_history=total_training_rewards_history,
                 )
-        return {"main": main, "target": target}
+            
+        return {"main": main, "episode": episode, "epsilon": epsilon, "total_reward_history": total_training_rewards_history}
 
     @staticmethod
     def _train_main_model(
