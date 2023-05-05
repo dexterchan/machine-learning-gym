@@ -486,7 +486,7 @@ class Reinforcement_DeepLearning:
                     total_rewards_history=total_training_rewards_history,
                 )
             
-        return {"main": main, "episode": episode, "epsilon": epsilon, "total_reward_history": total_training_rewards_history}
+        return {"main": main, "episode": episode, "epsilon": epsilon, "total_rewards_history": total_training_rewards_history}
 
     @staticmethod
     def _train_main_model(

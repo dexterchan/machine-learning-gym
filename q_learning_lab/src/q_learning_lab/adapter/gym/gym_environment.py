@@ -9,7 +9,10 @@ from typing import NamedTuple
 
 
 from ...domain.models.frozen_lake_models import Action_Space
-
+from ...domain.models.cart_pole_v1_models import (
+    Action_Space as Cart_Pole_Action_Space,
+    Env_Params,
+)
 
 class Fronzen_Lake_Environment:
     def __init__(self, params: NamedTuple):
@@ -56,10 +59,7 @@ class Fronzen_Lake_Environment:
         return self.env.action_space.n
 
 
-from ...domain.models.cart_pole_v1_models import (
-    Action_Space as Cart_Pole_Action_Space,
-    Env_Params,
-)
+
 
 
 class Cart_Pole_v1_Environment:

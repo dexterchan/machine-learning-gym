@@ -263,9 +263,9 @@ class TestDeepQLearning(unittest.TestCase):
             path=model_path,
             episode=deepagent_dict["episode"],
             epsilon=deepagent_dict["epsilon"],
-            total_rewards_history=deepagent_dict["total_reward_history"],
+            total_rewards_history=deepagent_dict["total_rewards_history"],
         )
-        assert len(deepagent_dict["total_reward_history"]) == self.env_params.total_episodes
+        assert len(deepagent_dict["total_rewards_history"]) == self.env_params.total_episodes
         #Continue the training
         deepagent_dict_2 = Reinforcement_DeepLearning.train(
             train_env=env,
@@ -279,7 +279,7 @@ class TestDeepQLearning(unittest.TestCase):
         assert deepagent_dict_2["main"] is not None
         assert deepagent_dict_2["episode"] == self.env_params.total_episodes * 2
         assert deepagent_dict_2["epsilon"] <  deepagent_dict["epsilon"]
-        assert len(deepagent_dict_2["total_reward_history"]) == self.env_params.total_episodes * 2
+        assert len(deepagent_dict_2["total_rewards_history"]) == self.env_params.total_episodes * 2
 
 
         pass

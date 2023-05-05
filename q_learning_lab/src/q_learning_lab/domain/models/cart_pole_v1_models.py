@@ -4,7 +4,7 @@ from typing import Any, NamedTuple
 from pathlib import Path
 import tensorflow as tf
 import time
-
+from .env_params import BaseEnv_Params
 
 class Params(NamedTuple):
     total_episodes: int  # Total episodes
@@ -26,9 +26,8 @@ class Params(NamedTuple):
     train_batch_size: int = 64 * 2  # Size of batch taken from replay memory
 
 
-class Env_Params(NamedTuple):
-    total_episodes: int  # Total episodes
-    n_max_steps: int  # Max steps per episode
+class Env_Params(BaseEnv_Params):
+    pass
 
 
 class Action_Space(int, Enum):
