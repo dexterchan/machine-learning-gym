@@ -111,33 +111,38 @@ class TestDeepQLearning(unittest.TestCase):
         )
         target.copy_weights(other=main)
 
-        # Prepare a random test data of numpy array of shape (100, 4)
-        current_states = np.random.random((100, 4))
-        future_states = np.random.random((100, 4))
-        # Create a random action space of shape (100, 1)
-        actions = np.random.randint(0, 2, size=(100, 1))
-        # Create a ONE reward space of shape (100, 1)
-        rewards = np.ones((100, 1))
-        # Create a random boolean done space of shape (100,1) with 95% of False and 5% of True
-        dones = np.random.random(size=(100, 1)) > 0.95
+        def prepare_fake_mini_batch() -> list[tuple]:
+            # Prepare a random test data of numpy array of shape (100, 4)
+            _current_states = np.random.random((100, 4))
+            _future_states = np.random.random((100, 4))
+            # Create a random action space of shape (100, 1)
+            actions = np.random.randint(0, 2, size=(100, 1))
+            # Create a ONE reward space of shape (100, 1)
+            rewards = np.ones((100, 1))
+            # Create a random boolean done space of shape (100,1) with 95% of False and 5% of True
+            dones = np.random.random(size=(100, 1)) > 0.95
 
-        # Construct mini-batch with random data:
-        # 1. current_states
-        # 2. actions
-        # 3. rewards
-        # 4. future_states
-        # 5. dones
-        mini_batch = []
-        for inx, current_state in enumerate(current_states):
-            mini_batch.append(
-                (
-                    current_state,
-                    actions[inx][0],
-                    rewards[inx][0],
-                    future_states[inx],
-                    dones[inx][0],
+            # Construct mini-batch with random data:
+            # 1. _current_states
+            # 2. actions
+            # 3. rewards
+            # 4. _future_states
+            # 5. dones
+            _mini_batch = []
+            for inx, current_state in enumerate(_current_states):
+                _mini_batch.append(
+                    (
+                        current_state,
+                        actions[inx][0],
+                        rewards[inx][0],
+                        _future_states[inx],
+                        dones[inx][0],
+                    )
                 )
-            )
+            return _mini_batch, _current_states, _future_states
+        
+        mini_batch, current_states, future_states = prepare_fake_mini_batch()
+
         # Convert mini_batch_array to a list of tuples
         Reinforcement_DeepLearning._train_main_model(
             main=main,
@@ -157,6 +162,64 @@ class TestDeepQLearning(unittest.TestCase):
                     episode=1,
                     epsilon=1,
                     total_reward=1,)
+        
+        #test load agent
+        cloned_agent, last_run_para = DeepAgent.load_agent(path=model_path)
+        cloned_agent2, last_run_para2 = DeepAgent.load_agent(path=model_path)
+        assert cloned_agent is not None
+        assert isinstance(cloned_agent, DeepAgent)
+        assert last_run_para["episode"] == 1
+        assert last_run_para["epsilon"] == 1
+        assert last_run_para["total_reward"] == 1
+        #Compare load agent with main agent
+        assert type(cloned_agent.model) == type(main.model)
+
+        assert cloned_agent.learning_rate == main.learning_rate
+        assert cloned_agent.discounting_factor == main.discounting_factor
+        
+        # Compare two keras.engine.sequential.Sequential objects are equal
+        # assert (cloned_agent.model) == (main.model) not working
+        assert cloned_agent.model.get_config() == main.model.get_config()
+        # Compare two keras.engine.sequential.Sequential objects are equal
+        for i, layer in enumerate(cloned_agent.model.layers):
+            #logger.debug("layer {} weights: {}".format(i, layer.get_weights()))
+            weights_list:list[np.array] = layer.get_weights()
+            for j, weights in enumerate(weights_list):
+                
+                assert (weights == main.model.layers[i].get_weights()[j]).all()
+        
+        # Test the run
+        test_states = np.random.random((200, env.observation_space_dim[0]))
+        output_main_result = main.predict_batch(
+            states=test_states
+        )
+        assert (200, env.action_space_dim) == output_main_result.shape
+
+        output_clone_result = cloned_agent.predict_batch(
+            states=test_states
+        )
+        assert (200, env.action_space_dim) == output_clone_result.shape
+
+        assert (output_main_result == output_clone_result).all()
+
+        # Test if still can train
+        mini_batch, current_states, future_states = prepare_fake_mini_batch()
+        new_traing_agent = Reinforcement_DeepLearning._train_main_model(
+            main=cloned_agent,
+            target=cloned_agent2,
+            mini_batch=mini_batch,
+            current_states=current_states,
+            next_states=future_states,
+            learning_rate=last_run_para["learning_rate"],
+            discount_factor=last_run_para["discounting_factor"],
+        )
+        assert main.model.get_config() == new_traing_agent.model.get_config()
+        for i, layer in enumerate(main.model.layers):
+            #logger.debug("layer {} weights: {}".format(i, layer.get_weights()))
+            weights_list:list[np.array] = layer.get_weights()
+            for j, weights in enumerate(weights_list):
+                assert (weights != new_traing_agent.model.layers[i].get_weights()[j]).any()
+
         pass
 
     @pytest.mark.skipif(

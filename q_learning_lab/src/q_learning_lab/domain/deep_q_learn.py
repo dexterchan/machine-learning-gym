@@ -56,7 +56,7 @@ class DeepAgent:
         self.learning_rate: float = learning_rate
         self.discounting_factor: float = discount_factor
         if structure is not None:
-            self.model = self._create_sequential_model(structure=structure)
+            self._model = self._create_sequential_model(structure=structure)
         pass
 
     @property
@@ -66,6 +66,10 @@ class DeepAgent:
     @verbose.setter
     def verbose(self, value: bool) -> None:
         self.is_verbose = value
+
+    @property
+    def model(self) -> keras.Model:
+        return self._model
 
     def save_agent(
         self, path: str, episode: int, epsilon: float, total_reward: float
@@ -80,7 +84,7 @@ class DeepAgent:
         """
         tensorflow_model_path = path + ".tfm"
         agent_path = path + ".json"
-        self.model.save(tensorflow_model_path)
+        self._model.save(tensorflow_model_path)
         model_dict: dict = {
             "episode": episode,
             "learning_rate": self.learning_rate,
@@ -93,14 +97,17 @@ class DeepAgent:
         pass
 
     @classmethod
-    def load_agent(cls, path: str) -> DeepAgent:
-        """load the agent from file
-            it will load from two files:
-            - path + ".tfm" : tensorflow model
-            - path + ".json" : agent parameters
-
+    def load_agent(cls, path: str) -> tuple[DeepAgent, dict]:
+        """
+        load the agent from file
+        it will load from two files:
+        - path + ".tfm" : tensorflow model
+        - path + ".json" : agent parameters
         Args:
             path (str): file path
+        
+        Returns:    
+            tuple[DeepAgent, dict]: agent, last run parameters
         """
         tensorflow_model_path = path + ".tfm"
         agent_path = path + ".json"
@@ -114,8 +121,8 @@ class DeepAgent:
             learning_rate=learning_rate,
             discount_factor=discounting_factor,
         )
-        instance.model = _sequential_model
-        return instance
+        instance._model = _sequential_model
+        return instance, model_dict
 
     def _create_sequential_model(
         self, structure: SequentialStructure
@@ -158,7 +165,7 @@ class DeepAgent:
         Args:
             other (DeepAgent): _description_
         """
-        self.model.set_weights(other.model.get_weights())
+        self._model.set_weights(other.model.get_weights())
 
     def predict(self, state: np.ndarray) -> Any:
         """_summary_
@@ -169,7 +176,7 @@ class DeepAgent:
         Returns:
             Any: action space with Q values (2,1)
         """
-        return self.model.predict(state.reshape(1, state.shape[0])).flatten()
+        return self._model.predict(state.reshape(1, state.shape[0])).flatten()
 
     def predict_batch(self, states: np.ndarray) -> Any:
         """_summary_
@@ -178,9 +185,9 @@ class DeepAgent:
             states (np.ndarray): column based vector (M,N) in shape
 
         Returns:
-            Any: action space with Q values (2,1)
+            Any: action space with Q values (2,N)
         """
-        return self.model.predict(states)
+        return self._model.predict(states)
 
     def epsilon_greedy(
         self,
