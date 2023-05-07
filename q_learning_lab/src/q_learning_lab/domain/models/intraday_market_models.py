@@ -41,6 +41,33 @@ class DNN_Params(NamedTuple):
         {"units": 16*2, "activation": "relu"},
     ]
     output_layer_struct:dict = {"units": len(Intraday_Trade_Action_Space), "activation": "linear"}
+    
+    def abc(self) -> None:
+        pass
+
+    def get_dnn_structure(self) -> SequentialStructure:
+        """Get pre-defined DNN structure for Intraday Trade
+        Returns:
+            SequentialStructure: Sequential Structure of DNN
+        """
+
+        init = tf.keras.initializers.HeUniform(seed=int(time.time()))
+        return SequentialStructure(
+            initializer=init,
+            input_layer=InputLayer(
+                units=self.first_layer_struct["units"],
+                input_shape=self.input_feacture_dim,
+                activation=self.first_layer_struct["activation"],
+                kernel_initializer=init,
+            ),
+            process_layers=[
+                ProcessLayer(**self.first_layer_struct),
+                *[ProcessLayer(**layer_struct) for layer_struct in self.mid_layers_struct],
+                ProcessLayer(**self.output_layer_struct),
+            ],
+            loss_function=tf.keras.losses.Huber(),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        )
     pass
 
 def get_dnn_structure(input_dim: tuple, output_dim: int) -> SequentialStructure:
