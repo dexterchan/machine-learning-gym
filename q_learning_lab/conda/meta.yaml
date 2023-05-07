@@ -1,0 +1,26 @@
+package:
+  name: "q_learning_lab"
+  version: '0.1.0'
+about:
+  summary: "This is deep q learning lab Python library"
+source:
+  path: ..
+requirements:
+  host:
+    - python
+    - setuptools
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+    - gymnasium==0.27.1
+    - pygame==2.3.0
+    - numpy==1.24.2
+    - matplotlib==3.5.2
+    - cachetools==4.2.2
+    - python-json-logger==2.0.1 #quick solution as json logging
+    - seaborn==0.12.2
+    - tensorflow>=2.11.1
+    - tradesignal_mtm_runner>=0.2.0
+    - cryptomarketdata>=0.1.1
