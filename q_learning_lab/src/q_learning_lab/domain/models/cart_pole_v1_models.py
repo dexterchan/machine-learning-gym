@@ -61,12 +61,11 @@ def get_dnn_structure(input_dim: tuple, output_dim: int) -> SequentialStructure:
             units=24,
             input_shape=input_dim,
             activation="relu",
-            kernel_initializer=init,
         ),
         process_layers=[
-            ProcessLayer(units=12, activation="relu", kernel_initializer=init),
+            ProcessLayer(units=12, activation="relu"),
             ProcessLayer(
-                units=output_dim, activation="linear", kernel_initializer=init
+                units=output_dim, activation="linear"
             ),
         ],
         loss_function=tf.keras.losses.Huber(),

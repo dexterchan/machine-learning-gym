@@ -27,13 +27,11 @@ class InputLayer(NamedTuple):
     units: int
     input_shape: tuple[int, int]
     activation: str
-    kernel_initializer: str
 
 
 class ProcessLayer(NamedTuple):
     units: int
     activation: str
-    kernel_initializer: str
 
 
 class SequentialStructure(NamedTuple):
@@ -72,7 +70,10 @@ class DeepAgent:
         return self._model
 
     def save_agent(
-        self, path: str, episode: int, epsilon: float, total_rewards_history: list[float]
+        self, path: str, episode: int, 
+        epsilon: float, 
+        total_rewards_history: list[float],
+        eval_rewards_history: list[dict]
     ) -> None:
         """save the agent into file
             it will save into two files:
@@ -84,6 +85,7 @@ class DeepAgent:
             episode (int): last episode
             epsilon (float): last epsilon
             total_rewards_history (list[float]): total rewards history
+            eval_rewards_history (list[dict]): evaluation rewards history
         """
         tensorflow_model_path = path + ".tfm"
         agent_path = path + ".json"
@@ -94,6 +96,7 @@ class DeepAgent:
             "discounting_factor": self.discounting_factor,
             "epsilon": epsilon,
             "total_rewards_history": total_rewards_history,
+            "eval_rewards_history": eval_rewards_history,
         }
         with open(agent_path, "w") as f:
             json.dump(model_dict, f)
@@ -145,7 +148,7 @@ class DeepAgent:
                 units=structure.input_layer.units,
                 input_shape=structure.input_layer.input_shape,
                 activation=structure.input_layer.activation,
-                kernel_initializer=structure.input_layer.kernel_initializer,
+                kernel_initializer=structure.initializer,
             )
         )
         for layer in structure.process_layers:
@@ -153,7 +156,7 @@ class DeepAgent:
                 keras.layers.Dense(
                     units=layer.units,
                     activation=layer.activation,
-                    kernel_initializer=layer.kernel_initializer,
+                    kernel_initializer=structure.initializer,
                 )
             )
         model.compile(
@@ -227,7 +230,7 @@ class DeepAgent:
 
         return action
 
-    def play(self, env: Execute_Environment, max_step: int, epsilon:float=0, is_exploit_only=True) -> tuple[float, bool]:
+    def play(self, env: Execute_Environment, max_step: int, epsilon:float=0, is_exploit_only=False) -> tuple[float, bool]:
         """
         Play the game with the agent
         
@@ -235,7 +238,7 @@ class DeepAgent:
             env (Execute_Environment): Execute environment
             max_step (int): maximum step to play
             epsilon (float, optional): epsilon value for exploration (0,1). Smaller value mean less likely exploration. Defaults to 0.
-            is_exploit_only (bool, optional): exploit only. Defaults to True.
+            is_exploit_only (bool, optional): exploit only. Defaults to False.
             
         Returns:
             tuple[float, bool]: total reward, is_complete
@@ -302,14 +305,15 @@ class Reinforcement_DeepLearning:
             model_path (str): model path
             
         Returns:
-            tuple[DeepAgent, int, float, list[float] ]: agent, last episode, last epsilon, total_rewards_history
+            tuple[DeepAgent, int, float, list[float] ]: agent, last episode, last epsilon, total_rewards_history, last_eval_rewards_history
         """
         cloned_agent, last_run_para = DeepAgent.load_agent(path=model_path)
         episode = last_run_para["episode"]
         epsilon = last_run_para["epsilon"]
         total_rewards_history = last_run_para["total_rewards_history"]
+        last_eval_rewards_history = last_run_para["eval_rewards_history"]
 
-        return cloned_agent, episode, epsilon, total_rewards_history
+        return cloned_agent, episode, epsilon, total_rewards_history, last_eval_rewards_history
 
     @staticmethod
     def train(
@@ -319,6 +323,7 @@ class Reinforcement_DeepLearning:
         dnn_structure: SequentialStructure|str,
         is_verbose: bool = False,
         model_name: str = "CartPole-v1",
+        eval_env: Execute_Environment = None
     ) -> dict[str, DeepAgent]:
         """ training the model in batch
 
@@ -331,7 +336,7 @@ class Reinforcement_DeepLearning:
             model_name (str, optional): model name of the environment. Defaults to "CartPole-v1".
 
         Returns:
-            dict[str,DeepAgent]: dictionary of agents -> {"main": main, "episode": episode, "epsilon": epsilon, "target": target}
+            dict[str,DeepAgent]: dictionary of agents -> {"main": main, "episode": episode, "epsilon": epsilon, "eval_rewards_history": eval_rewards_history}
         """
         epsilon = (
             agent_params.start_epsilon
@@ -362,14 +367,15 @@ class Reinforcement_DeepLearning:
 
         episode:int = 1
         total_training_rewards_history = []
+        eval_rewards_history = []
         
         if isinstance(dnn_structure, str):
             # Overwriting episode and epsilon here after loading model
             logger.info(f"Load existing {model_name} model from {dnn_structure}")
-            main, _episode, _epsilon, _reward_history = Reinforcement_DeepLearning._load_existing_agent(
+            main, _episode, _epsilon, _reward_history, _eval_history = Reinforcement_DeepLearning._load_existing_agent(
                 model_path=dnn_structure
             )
-            target, _, _, _ = Reinforcement_DeepLearning._load_existing_agent(
+            target, _, _, _ ,_ = Reinforcement_DeepLearning._load_existing_agent(
                 model_path=dnn_structure
             )
             logger.info(
@@ -381,6 +387,7 @@ class Reinforcement_DeepLearning:
             episode = 1 + _episode
             epsilon = _epsilon
             total_training_rewards_history.extend(_reward_history)
+            eval_rewards_history.extend(_eval_history)
         else:
             # 1a. initialize the main model, (updated every "every_n_steps_to_train_main_model" steps)
             main = Reinforcement_DeepLearning._create_new_deep_agent(
@@ -479,14 +486,37 @@ class Reinforcement_DeepLearning:
             )
             total_training_rewards_history.append(total_training_rewards)
             if episode % Reinforcement_DeepLearning.SAVE_AGENT_EVERY_N_EPISODE == 0:
+                
+                #Do the evaluation
+                if eval_env is not None:
+                    eval_reward, is_eval_complete = main.play(
+                        env=eval_env,
+                        max_step=max_steps_allowed,
+                        epsilon=min_epsilon,
+                        is_exploit_only=False
+                    )
+                    eval_rewards_history.append(
+                        {
+                            "episode": episode,
+                            "eval_reward": eval_reward,
+                            "is_eval_complete": is_eval_complete
+                        }
+                    )
                 main.save_agent(
                     path=f"{model_path}_{episode}",
                     episode=episode,
                     epsilon=epsilon,
                     total_rewards_history=total_training_rewards_history,
+                    eval_rewards_history=eval_rewards_history
                 )
             
-        return {"main": main, "episode": episode, "epsilon": epsilon, "total_rewards_history": total_training_rewards_history}
+        return {
+                "main": main, 
+                "episode": episode, 
+                "epsilon": epsilon, 
+                "total_rewards_history": total_training_rewards_history,
+                "eval_rewards_history": eval_rewards_history
+                }
 
     @staticmethod
     def _train_main_model(

@@ -9,7 +9,7 @@ from ..deep_q_learn import (
     ProcessLayer,
     InputLayer,
 )
-from time import time
+import time
 import tensorflow as tf
 
 class EnvParams(BaseEnv_Params):
@@ -58,7 +58,6 @@ class DNN_Params(NamedTuple):
                 units=self.first_layer_struct["units"],
                 input_shape=self.input_feacture_dim,
                 activation=self.first_layer_struct["activation"],
-                kernel_initializer=init,
             ),
             process_layers=[
                 ProcessLayer(**self.first_layer_struct),
@@ -69,33 +68,3 @@ class DNN_Params(NamedTuple):
             optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
         )
     pass
-
-def get_dnn_structure(input_dim: tuple, output_dim: int) -> SequentialStructure:
-    """Get pre-defined DNN structure for Intraday Trade
-
-    Args:
-        input_dim (tuple): input dimenstion of state space
-        output_dim (int): output dimension of action space
-
-    Returns:
-        SequentialStructure: Sequential Structure of DNN
-    """
-
-    init = tf.keras.initializers.HeUniform(seed=int(time.time()))
-    return SequentialStructure(
-        initializer=init,
-        input_layer=InputLayer(
-            units=24,
-            input_shape=input_dim,
-            activation="relu",
-            kernel_initializer=init,
-        ),
-        process_layers=[
-            ProcessLayer(units=12, activation="relu", kernel_initializer=init),
-            ProcessLayer(
-                units=output_dim, activation="linear", kernel_initializer=init
-            ),
-        ],
-        loss_function=tf.keras.losses.Huber(),
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-    )

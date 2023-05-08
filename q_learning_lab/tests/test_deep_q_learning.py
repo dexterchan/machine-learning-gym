@@ -167,11 +167,12 @@ class TestDeepQLearning(unittest.TestCase):
                 path=model_path,
                     episode=1,
                     epsilon=1,
-                    total_rewards_history=[1],)
+                    total_rewards_history=[1],
+                    eval_rewards_history=[])
         
         #test load agent
         cloned_agent, last_run_para = DeepAgent.load_agent(path=model_path)
-        cloned_agent2, last_episode, last_epsilon, _reward_history = Reinforcement_DeepLearning._load_existing_agent(
+        cloned_agent2, last_episode, last_epsilon, _reward_history, _ = Reinforcement_DeepLearning._load_existing_agent(
             model_path=model_path
         )
         
@@ -236,23 +237,28 @@ class TestDeepQLearning(unittest.TestCase):
     )
     def test_training(self):
         model_name = "CartPole-v1"
-        env = create_execute_environment(
+        train_env = create_execute_environment(
             arena=model_name, params=self.env_params_dict
         )
+        eval_env = create_execute_environment(
+            arena=model_name, params=self.env_params_dict
+        )
+        
         from q_learning_lab.domain.models.cart_pole_v1_models import get_dnn_structure
 
         dnn_structure = get_dnn_structure(
-            input_dim=env.observation_space_dim,
-            output_dim=env.action_space_dim,
+            input_dim=train_env.observation_space_dim,
+            output_dim=train_env.action_space_dim,
         )
 
         deepagent_dict = Reinforcement_DeepLearning.train(
-            train_env=env,
+            train_env=train_env,
             agent_params=self.agent_params,
             train_env_params=self.env_params,
             dnn_structure=dnn_structure,
             is_verbose=False,
             model_name=model_name,
+            eval_env=eval_env
         )
 
         assert deepagent_dict is not None
@@ -264,11 +270,14 @@ class TestDeepQLearning(unittest.TestCase):
             episode=deepagent_dict["episode"],
             epsilon=deepagent_dict["epsilon"],
             total_rewards_history=deepagent_dict["total_rewards_history"],
+            eval_rewards_history=deepagent_dict["eval_rewards_history"],
         )
         assert len(deepagent_dict["total_rewards_history"]) == self.env_params.total_episodes
+        assert len(deepagent_dict["total_rewards_history"]) > len(deepagent_dict["eval_rewards_history"]) > 0
         #Continue the training
         deepagent_dict_2 = Reinforcement_DeepLearning.train(
-            train_env=env,
+            train_env=train_env,
+            eval_env=eval_env,
             agent_params=self.agent_params,
             train_env_params=self.env_params,
             dnn_structure=model_path,
@@ -280,6 +289,12 @@ class TestDeepQLearning(unittest.TestCase):
         assert deepagent_dict_2["episode"] == self.env_params.total_episodes * 2
         assert deepagent_dict_2["epsilon"] <  deepagent_dict["epsilon"]
         assert len(deepagent_dict_2["total_rewards_history"]) == self.env_params.total_episodes * 2
-
+        deepagent_dict_2["main"].save_agent(
+            path=model_path,
+            episode=deepagent_dict_2["episode"],
+            epsilon=deepagent_dict_2["epsilon"],
+            total_rewards_history=deepagent_dict_2["total_rewards_history"],
+            eval_rewards_history=deepagent_dict_2["eval_rewards_history"],
+        )
 
         pass
