@@ -39,3 +39,4 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 References:
 [Q-learning](https://towardsdatascience.com/q-learning-algorithm-how-to-successfully-teach-an-intelligent-agent-to-play-a-game-933595fd1abf)
 [Python boilerplate](https://sekoudiaonlp.github.io/How-to-create-build-and-publish-a-Python-package.html)
+[Tips for learning rate](https://nieznanm.medium.com/finding-a-learning-rate-in-deep-reinforcement-learning-27ed725f6b90)

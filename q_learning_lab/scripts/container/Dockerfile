@@ -1,7 +1,7 @@
 ARG RUN_DIR="/var/task"
 ARG RUN_USER="appuser"
 ARG CONDA_VERSION="39_4.12.0"
-ARG CONTAINER_VERSION="3.9.15-bullseye"
+ARG CONTAINER_VERSION="3.9.16-slim"
 
 
 FROM python:${CONTAINER_VERSION} as base
