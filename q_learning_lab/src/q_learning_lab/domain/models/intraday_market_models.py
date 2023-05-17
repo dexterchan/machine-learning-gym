@@ -22,6 +22,18 @@ class Intraday_Trade_Action_Space(int, Enum):
     SELL = 2
 
     @staticmethod
+    def convert_to_buy_sell_action_enum(intradayEnum:Intraday_Trade_Action_Space)->Buy_Sell_Action_Enum:
+        if intradayEnum.BUY:
+            return Buy_Sell_Action_Enum.BUY
+        elif intradayEnum.SELL:
+            return Buy_Sell_Action_Enum.SELL
+        elif intradayEnum.HOLD:
+            return Buy_Sell_Action_Enum.HOLD
+        else:
+            raise NotImplementedError(f"No conversion found for intraday enum: {intradayEnum}")
+            
+
+    @staticmethod
     def convert_from_buy_sell_action_enum(actionEnum:Buy_Sell_Action_Enum)->Intraday_Trade_Action_Space:
 
         if actionEnum.BUY:

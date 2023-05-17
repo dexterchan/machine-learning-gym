@@ -1,6 +1,6 @@
 {
     "env": {
-        "total_episodes": 2000,
+        "total_episodes": 8000,
         "n_max_steps": 3000,
         "episode_batch": 20
     },
