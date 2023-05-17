@@ -2,10 +2,10 @@
     "env": {
         "total_episodes": 8000,
         "n_max_steps": 3000,
-        "episode_batch": 20
+        "episode_batch": 100
     },
     "agent": {
-        "learning_rate": 0.7,
+        "learning_rate": 0.0001,
         "gamma": 0.618,
         "epsilon": 0.1,
         "savefig_folder": "_static/img/test/",
