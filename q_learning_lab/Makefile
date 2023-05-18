@@ -103,3 +103,9 @@ training:
 
 dummy_run: 
 	python3 -m q_learning_lab -b dummy -c scripts/config/cart_pole_v1_long.json
+
+
+testing: export PYTHONPATH=$(shell pwd)/src
+testing:
+	echo ${PYTHONPATH}
+	pytest tests

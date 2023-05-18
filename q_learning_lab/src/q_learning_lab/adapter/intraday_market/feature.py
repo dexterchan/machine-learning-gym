@@ -11,7 +11,7 @@ from crypto_feature_preprocess.port.interfaces import (
 )
 from crypto_feature_preprocess.port.features import create_feature_from_close_price
 
-class Feature_Generator():
+class OHLCV_Feature_Generator():
     def __init__(self, feature_list_input:List[dict]) -> None:
         #Call helper function to parse List[dict] into List[Feature_Definition]
         self.feature_list:List[Feature_Definition] = self._parse_feature_list_input(feature_list_input)

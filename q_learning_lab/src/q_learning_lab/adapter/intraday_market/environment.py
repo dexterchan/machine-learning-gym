@@ -7,6 +7,7 @@ from enum import Enum
 #numeric action which is compatible with gym
 from ...domain.models.intraday_market_models import Intraday_Trade_Action_Space
 from  tradesignal_mtm_runner.models import Buy_Sell_Action_Enum
+from .data_input import Data_Source
 
 #Import crypto_feature_precess package here
 from crypto_feature_preprocess.port.interfaces import (
@@ -19,7 +20,7 @@ from crypto_feature_preprocess.port.interfaces import (
 
 
 class Intraday_Market_Environment(Interface_Environment):
-    def __init__(self, params: dict, data_market_source) -> None:
+    def __init__(self, params: dict, data_market_source:Data_Source) -> None:
         #The data source can be realtime or random historical data
 
         self._observation_space_dim = 4
