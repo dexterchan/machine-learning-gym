@@ -9,6 +9,9 @@ import os
 import pyarrow.dataset as pqds
 import pyarrow as pa
 import random
+
+from crypto_feature_preprocess.port.interfaces import Training_Eval_Enum
+
 logger = get_logger(__name__)
 class Data_Source(ABC):
     @abstractmethod
@@ -34,7 +37,7 @@ class Random_Data_Source(Data_Source):
         self.df: pd.DataFrame = dt.to_pandas()
         pass
     
-    def get_training_data_candles(self) -> pd.DataFrame:
+    def get_market_data_candles(self) -> pd.DataFrame:
         """ Randomly get market data candles from the pool
         Returns:
             Any: OHLCV data in panda form
@@ -43,14 +46,17 @@ class Random_Data_Source(Data_Source):
         _df = self.df[self.df["scenario"]==pick_scenario]
         return _df
 
-from crypto_feature_preprocess.port.training_data_parquet import prepare_training_data_and_eval_from_parquet
+from crypto_feature_preprocess.port.training_data_parquet import (
+    prepare_training_data_and_eval_from_parquet,
+    derive_min_candle_population_in_episode
+)
 from .training_interface import TrainingDataBundleParameter
 class File_Data_Source_Factory():
     def __init__(self) -> None:
         pass
     
-
-    def prepare_training_eval_data_source(self, 
+    @staticmethod
+    def prepare_training_eval_data_source(
                                         bundle_para:TrainingDataBundleParameter
                                         ) -> tuple[Data_Source, Data_Source]:
         """ prepare training data and eval data from file path
@@ -62,12 +68,12 @@ class File_Data_Source_Factory():
             tuple[data_source, data_source]: training data source and eval data source
         """
 
-        min_candle_population: int = int(
-            timedelta(days=1)
-            / timedelta(minutes=bundle_para.candle_size_minutes)
-            * bundle_para.data_length_days
-            * 0.8
+        min_candle_population: int = derive_min_candle_population_in_episode(
+            candle_size_minutes=bundle_para.candle_size_minutes,
+            data_length_days=bundle_para.data_length_days,
+            data_presence_ratio=0.8
         )
+        
         #Parse start_date_ymd string to start_date datetime
         start_date = datetime.strptime(bundle_para.start_date_ymd, "%Y%m%d")
         end_date = datetime.strptime(bundle_para.end_date_ymd, "%Y%m%d")
@@ -90,11 +96,11 @@ class File_Data_Source_Factory():
         )
         logger.info(f"num_training_data_row: {num_training_data_row}")
         training_data_source = Random_Data_Source(
-            os.path.join(bundle_para.output_data_dir, "training")
+            os.path.join(bundle_para.output_data_dir, str(Training_Eval_Enum.TRAINING.value))
         )
         logger.info(f"num_eval_data_row: {num_eval_data_row}")
         eval_data_source = Random_Data_Source(
-            os.path.join(bundle_para.output_data_dir, "eval")
+            os.path.join(bundle_para.output_data_dir, str(Training_Eval_Enum.EVAL.value))
             )
         return training_data_source, eval_data_source
 

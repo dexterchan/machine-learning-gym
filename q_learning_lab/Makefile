@@ -105,7 +105,8 @@ dummy_run:
 	python3 -m q_learning_lab -b dummy -c scripts/config/cart_pole_v1_long.json
 
 
-testing: export PYTHONPATH=$(shell pwd)/src
-testing:
+test: export PYTHONPATH=$(shell pwd)/src
+test: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
+test:
 	echo ${PYTHONPATH}
 	pytest tests
