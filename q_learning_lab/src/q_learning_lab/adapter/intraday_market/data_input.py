@@ -9,6 +9,7 @@ import os
 import pyarrow.dataset as pqds
 import pyarrow as pa
 import random
+from functools import cached_property
 
 from crypto_feature_preprocess.port.interfaces import Training_Eval_Enum
 
@@ -42,9 +43,45 @@ class Random_Data_Source(Data_Source):
         Returns:
             Any: OHLCV data in panda form
         """
-        pick_scenario = random.randint(0, self.df["scenario"].max())
-        _df = self.df[self.df["scenario"]==pick_scenario]
+        episodes = self.get_all_episode_numbers
+        #Randomly pick an episode
+        pick_scenario = random.choice(episodes)
+        _df = self.get_episode_data(pick_scenario)
         return _df
+    
+    def get_data_dimension(self) -> tuple[int, int]:
+        """ Get data dimension
+        Returns:
+            tuple[int, int]: data dimension
+        """
+        row, col = self.df.shape
+        #Exclude scenario column
+        return row, col-1
+    
+    @cached_property
+    def get_all_episode_numbers(self) -> list[int]:
+        """ Get all episode number
+        Returns:
+            list[int]: all episode number
+        """
+        return self.df["scenario"].unique().tolist()
+    
+    def get_episode_data(self, episode_id:int) -> pd.DataFrame:
+        """ Get episode data
+        Args:
+            episode_id (int): episode id
+        Returns:
+            pd.DataFrame: episode data
+        """
+        df = self.df[self.df["scenario"]==episode_id]
+        #Exclude column "scenario"
+        df = df.drop(columns=["scenario"])
+        return df
+        
+
+    
+    
+
 
 from crypto_feature_preprocess.port.training_data_parquet import (
     prepare_training_data_and_eval_from_parquet,
