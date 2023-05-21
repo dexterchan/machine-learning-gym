@@ -11,3 +11,4 @@ class TrainingDataBundleParameter(NamedTuple):
     split_ratio:float
     output_data_dir:str
     candle_size_minutes:int
+    data_presence_ratio:float=0.9

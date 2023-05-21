@@ -144,7 +144,7 @@ class File_Data_Source_Factory():
         min_candle_population: int = derive_min_candle_population_in_episode(
             candle_size_minutes=bundle_para.candle_size_minutes,
             data_length_days=bundle_para.data_length_days,
-            data_presence_ratio=0.8
+            data_presence_ratio=bundle_para.data_presence_ratio
         )
         
         #Parse start_date_ymd string to start_date datetime

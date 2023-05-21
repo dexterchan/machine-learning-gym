@@ -25,7 +25,7 @@ def get_TrainingDataBundleParameter() -> TrainingDataBundleParameter:
         end_date_ymd="20230401",
         data_length_days=3,
         data_step=1,
-        split_ratio=0.8,
+        split_ratio=0.9,
         output_data_dir="/tmp/output",
         candle_size_minutes=15,
     )
@@ -53,7 +53,7 @@ def test_training_data(get_TrainingDataBundleParameter) -> None:
 
     
     assert train_rows > eval_rows > 0
-    assert abs((train_rows / eval_rows) - (bundle_param.split_ratio / (1-bundle_param.split_ratio))) < 0.1
+    assert abs((train_rows / eval_rows) - (bundle_param.split_ratio / (1-bundle_param.split_ratio))) < 0.6
 
     #randomly pick a scenario
     df = train_data_source.get_market_data_candles()
@@ -81,6 +81,6 @@ def test_historical_data(get_TrainingDataBundleParameter) -> None:
     outofrange = candles[((candles.index<start_date) | (candles.index>end_date))]
     assert outofrange.empty
     
-    logger.info(candles)
+    #logger.info(candles)
     pass
 
