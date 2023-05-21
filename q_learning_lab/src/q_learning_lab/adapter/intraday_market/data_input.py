@@ -10,7 +10,7 @@ import pyarrow.dataset as pqds
 import pyarrow as pa
 import random
 from functools import cached_property
-
+from datetime import datetime, timedelta
 from crypto_feature_preprocess.port.interfaces import Training_Eval_Enum
 
 logger = get_logger(__name__)
@@ -27,9 +27,45 @@ class Data_Source_Enum(str, ):
     RANDOM = "RANDOM"
     HISTORICAL = "HISTORICAL"
     REALTIME = "REALTIME"
-    
-class Random_Data_Source(Data_Source):
-    def __init__(self, parquet_file_path:str) -> Any:
+
+from cryptomarketdata.port.db_client import get_data_db_client, Database_Type
+class Historical_File_Access_Data_Source(Data_Source):
+    def __init__(self, parquet_file_path:str, exchange:str, symbol:str) -> None:
+        """ Historical file access data source
+
+        Args:
+            parquet_file_path (str): Parquet File path
+            exchange (str): Exchange name
+            symbol (str): Symbol name
+        """
+        self.symbol = symbol
+        self.db_client = get_data_db_client(
+            exchange=exchange,
+            database_type=Database_Type.PARQUET,
+            data_directory=parquet_file_path,
+        )
+        
+
+    def get_market_data_candles(self, start_date:datetime, end_date:datetime=datetime.now()) -> pd.DataFrame:
+        """  get market data candles from the pool
+        Returns:
+            Any: OHLCV data in panda form
+        """
+        #Read parquet file and filter the index by start_date and end_date
+        from_time:int = int(start_date.timestamp()*1000)
+        to_time:int = int(end_date.timestamp()*1000)
+
+        df = self.db_client.get_candles(
+            symbol=self.symbol,
+            from_time=from_time,
+            to_time=to_time,
+        )
+        return df
+
+
+
+class Random_File_Access_Data_Source(Data_Source):
+    def __init__(self, parquet_file_path:str) -> None:
         dataset: pqds.dataset = pqds.dataset(
             parquet_file_path,
             format="parquet"
@@ -132,14 +168,33 @@ class File_Data_Source_Factory():
             min_candle_population=min_candle_population,
         )
         logger.info(f"num_training_data_row: {num_training_data_row}")
-        training_data_source = Random_Data_Source(
+        training_data_source = Random_File_Access_Data_Source(
             os.path.join(bundle_para.output_data_dir, str(Training_Eval_Enum.TRAINING.value))
         )
         logger.info(f"num_eval_data_row: {num_eval_data_row}")
-        eval_data_source = Random_Data_Source(
+        eval_data_source = Random_File_Access_Data_Source(
             os.path.join(bundle_para.output_data_dir, str(Training_Eval_Enum.EVAL.value))
             )
         return training_data_source, eval_data_source
+
+    @staticmethod
+    def prepare_historical_data_source(parquet_file_path:str, exchange:str, symbol:str) -> Data_Source:
+        """ prepare historical data source
+
+        Args:
+            parquet_file_path (str): parquet file path
+            exchange (str): exchange name
+            symbol (str): symbol name
+
+        Returns:
+            Data_Source: historical data source
+        """
+        data_source = Historical_File_Access_Data_Source(
+            parquet_file_path=parquet_file_path,
+            exchange=exchange,
+            symbol=symbol
+        )
+        return data_source
 
 
 
