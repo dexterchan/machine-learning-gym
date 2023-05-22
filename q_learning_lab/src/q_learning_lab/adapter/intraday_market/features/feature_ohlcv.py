@@ -9,9 +9,10 @@ from crypto_feature_preprocess.port.interfaces import (
     SMA_Cross_Feature_Interface,
     Feature_Enum
 )
-from crypto_feature_preprocess.port.features import create_feature_from_close_price
+from crypto_feature_preprocess.port.features import create_feature_from_one_dim_data
+from .feature_interface import Feature_Generator_Interface
 
-class OHLCV_Feature_Generator():
+class OHLCV_Feature_Generator(Feature_Generator_Interface):
     def __init__(self, feature_list_input:List[dict]) -> None:
         #Call helper function to parse List[dict] into List[Feature_Definition]
         self.feature_list:List[Feature_Definition] = self._parse_feature_list_input(feature_list_input)
@@ -60,18 +61,18 @@ class OHLCV_Feature_Generator():
 
         return feature_list
     
-    def generate_feature(self, candle_data:pd.DataFrame) -> np.ndarray:
+    def generate_feature(self, price_vector:pd.Series) -> np.ndarray:
         """generate feature vector from candle data following given feature input requirement
 
         Args:
-            candle_data (pd.DataFrame): candles OHLCV data in panda form
+            price_vector (pd.Series): Price vector e.g. close price, volume
 
         Returns:
             np.ndarray: feature array (N x feature_dim)
         """
 
-        feature, _ = create_feature_from_close_price(
-            candle_data=candle_data["close"],
+        feature, _ = create_feature_from_one_dim_data(
+            price_vector=price_vector,
             feature_list=self.feature_list
         )
 

@@ -10,13 +10,23 @@ from  tradesignal_mtm_runner.models import Buy_Sell_Action_Enum
 from .data_input import Data_Source
 
 #Import crypto_feature_precess package here
-from crypto_feature_preprocess.port.interfaces import (
-    Feature_Definition,
-    RSI_Feature_Interface,
-    SMA_Feature_Interface,
-    Log_Price_Feature_Interface,
-    Feature_Enum
-)
+from .features.feature_port import Feature_Generator_Factory, Feature_Generator_Enum
+from .features.feature_interface import Feature_Generator_Interface
+class FeatureRunner():
+    def __init__(self, data_source:Data_Source, feature_generator_type:str, feature_plan:dict[str, list[dict]] ) -> None:
+        self.feature_generator_type:Feature_Generator_Enum = Feature_Generator_Enum(feature_generator_type)
+        self.feature_schema:dict[str, Feature_Generator_Interface]
+        for col, _feature_struct in feature_plan.items():
+            self.feature_schema[col] = Feature_Generator_Factory.create_generator(self.feature_generator_type, _feature_struct)
+        pass
+
+    def run(self, data:np.ndarray) -> np.ndarray:
+        pass
+
+    def reset(self):
+        pass
+
+
 
 
 class Intraday_Market_Environment(Interface_Environment):
