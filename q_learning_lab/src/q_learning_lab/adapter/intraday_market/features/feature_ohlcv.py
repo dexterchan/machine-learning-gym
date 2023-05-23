@@ -17,7 +17,7 @@ class OHLCV_Feature_Generator(Feature_Generator_Interface):
         #Call helper function to parse List[dict] into List[Feature_Definition]
         self.feature_list:List[Feature_Definition] = self._parse_feature_list_input(feature_list_input)
     
-    def _parse_feature_list_input(feature_list_input:List[dict]) -> List[Feature_Definition]:
+    def _parse_feature_list_input(self, feature_list_input:List[dict]) -> List[Feature_Definition]:
         """ Helper function to parse List[dict] into List[Feature_Definition]
             dict format:
             {

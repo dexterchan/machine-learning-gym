@@ -1,0 +1,39 @@
+{
+    "close": [
+        {
+            "feature_name": "Log Price movement",
+            "feature_type": "LOG_PRICE",
+            "feature_params": {
+                "dimension": 10,
+                "normalize_value": 0.02
+            }
+        },
+        {
+            "feature_name": "SMA Cross indicator",
+            "feature_type": "SMA_CROSS",
+            "feature_params": {
+                "sma_window_1": 10,
+                "sma_window_2": 50,
+                "dimension": 5
+            }
+        },
+        {
+            "feature_name": "RSI indicator",
+            "feature_type": "RSI",
+            "feature_params": {
+                "rsi_window": 14,
+                "dimension": 5
+            }
+        }
+    ],
+    "volume": [
+        {
+            "feature_name": "Log Volume movement",
+            "feature_type": "LOG_PRICE",
+            "feature_params": {
+                "dimension": 10,
+                "normalize_value": 0.02
+            }
+        }
+    ]
+}
