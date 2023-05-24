@@ -9,21 +9,38 @@ from ...domain.models.intraday_market_models import Intraday_Trade_Action_Space
 from  tradesignal_mtm_runner.models import Buy_Sell_Action_Enum
 from .data_input import Data_Source
 
+import pandas as pd
 #Import crypto_feature_precess package here
 from .features.feature_port import Feature_Generator_Factory, Feature_Generator_Enum
 from .features.feature_interface import Feature_Generator_Interface
+
+
 class FeatureRunner():
     def __init__(self, data_source:Data_Source, feature_generator_type:str, feature_plan:dict[str, list[dict]] ) -> None:
+        self._data_source = data_source
         self.feature_generator_type:Feature_Generator_Enum = Feature_Generator_Enum(feature_generator_type)
-        self.feature_schema:dict[str, Feature_Generator_Interface]
+        self.feature_schema:dict[str, Feature_Generator_Interface] = {}
         for col, _feature_struct in feature_plan.items():
             self.feature_schema[col] = Feature_Generator_Factory.create_generator(self.feature_generator_type, _feature_struct)
+        self.read_pointer:int = 0
         pass
 
-    def run(self, data:np.ndarray) -> np.ndarray:
-        pass
+    
+    def calculate_features(self) -> np.ndarray:
+        #Get data from data source
+        df:pd.DataFrame = self._data_source.get_market_data_candles()
+        features_list = []
+        for col, _feature_generator in self.feature_schema.items():
+            g:Feature_Generator_Interface = _feature_generator
+            _data:np.ndarray = g.generate_feature(price_vector=df[col])
+            features_list.append(_data)
+        
+        return np.concatenate(features_list, axis=1)
 
-    def reset(self):
+    def reset(self, **kwargs):
+        """reset data source and feature generator
+        """
+        self._data_source.reset(kwargs=kwargs)
         pass
 
 

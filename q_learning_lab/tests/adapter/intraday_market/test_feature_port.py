@@ -10,10 +10,7 @@ import json
 
 logger = get_logger(__name__)
 
-@pytest.fixture()
-def get_feature_schema() -> dict[str, list]:
-    with open("scripts/models/ohlcv_feature_schema.json", "r") as f:
-        return json.load(f)
+
 
 
 def test_feature_factory(get_feature_schema):

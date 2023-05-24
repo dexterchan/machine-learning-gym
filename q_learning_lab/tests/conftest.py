@@ -1,6 +1,7 @@
 import pytest
 import os
 from q_learning_lab.adapter.intraday_market.training_interface import TrainingDataBundleParameter
+import json
 
 @pytest.fixture()
 def get_TrainingDataBundleParameter() -> TrainingDataBundleParameter:
@@ -17,3 +18,8 @@ def get_TrainingDataBundleParameter() -> TrainingDataBundleParameter:
         candle_size_minutes=15,
     )
     return bundle_param
+
+@pytest.fixture()
+def get_feature_schema() -> dict[str, list]:
+    with open("scripts/models/ohlcv_feature_schema.json", "r") as f:
+        return json.load(f)
