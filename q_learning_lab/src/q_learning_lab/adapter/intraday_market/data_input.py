@@ -1,5 +1,5 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 from typing import NamedTuple, Tuple, List, Dict, Any, Union, Optional
 import pandas as pd
 from datetime import timedelta, datetime
@@ -22,6 +22,14 @@ class Data_Source(ABC):
             Any: OHLCV data in panda form
         """
         pass
+    
+    @abstractmethod
+    def reset(self, **kwargs) -> None:
+        """ reset data source
+        """
+        pass
+
+    
 
 class Data_Source_Enum(str, ):
     RANDOM = "RANDOM"
@@ -44,16 +52,18 @@ class Historical_File_Access_Data_Source(Data_Source):
             database_type=Database_Type.PARQUET,
             data_directory=parquet_file_path,
         )
+        self._start_date = datetime.now() - timedelta(days=30)
+        self._end_date = datetime.now()
         
 
-    def get_market_data_candles(self, start_date:datetime, end_date:datetime=datetime.now()) -> pd.DataFrame:
+    def get_market_data_candles(self) -> pd.DataFrame:
         """  get market data candles from the pool
         Returns:
             Any: OHLCV data in panda form
         """
         #Read parquet file and filter the index by start_date and end_date
-        from_time:int = int(start_date.timestamp()*1000)
-        to_time:int = int(end_date.timestamp()*1000)
+        from_time:int = int(self.start_date.timestamp()*1000)
+        to_time:int = int(self.end_date.timestamp()*1000)
 
         df = self.db_client.get_candles(
             symbol=self.symbol,
@@ -61,6 +71,37 @@ class Historical_File_Access_Data_Source(Data_Source):
             to_time=to_time,
         )
         return df
+    
+    def reset(self, **kwargs) -> None:
+        """ reset historical market data
+
+        Args:   
+            **kwargs: expect {start_date:datetime, end_date:datetime}
+        """
+        
+        self.start_date = kwargs["start_date"]
+        self.end_date = kwargs["end_date"]
+        pass
+    
+    @property
+    def start_date(self) -> datetime:
+        return self._start_date
+    
+    @property
+    def end_date(self) -> datetime:
+        return self._end_date
+    
+    @start_date.setter
+    def start_date(self, value:datetime) -> None:
+        if isinstance(  value, datetime) == False:
+            raise ValueError("start_date is not datetime")
+        self._start_date = value
+
+    @end_date.setter
+    def end_date(self, value:datetime) -> None:
+        if isinstance(  value, datetime) == False:
+            raise ValueError("start_date is not datetime")
+        self._end_date = value
 
 
 
@@ -72,6 +113,8 @@ class Random_File_Access_Data_Source(Data_Source):
         )
         dt: pa.table = dataset.to_table()
         self.df: pd.DataFrame = dt.to_pandas()
+        self.pick_episode = -1
+        self.reset()
         pass
     
     def get_market_data_candles(self) -> pd.DataFrame:
@@ -79,11 +122,20 @@ class Random_File_Access_Data_Source(Data_Source):
         Returns:
             Any: OHLCV data in panda form
         """
-        episodes = self.get_all_episode_numbers
-        #Randomly pick an episode
-        pick_scenario = random.choice(episodes)
-        _df = self.get_episode_data(pick_scenario)
+        if self.pick_episode < 0:
+            self.reset()
+        _df = self.get_episode_data(self.pick_episode)
         return _df
+    
+    def reset(self, **kwargs) -> None:
+        """ reset historical market data
+            generate a random number as episode id
+            for market data extraction
+        """
+        episodes = self.all_episode_numbers
+        #Randomly pick an episode
+        self.pick_episode = random.choice(episodes)
+        pass
     
     def get_data_dimension(self) -> tuple[int, int]:
         """ Get data dimension
@@ -95,7 +147,7 @@ class Random_File_Access_Data_Source(Data_Source):
         return row, col-1
     
     @cached_property
-    def get_all_episode_numbers(self) -> list[int]:
+    def all_episode_numbers(self) -> list[int]:
         """ Get all episode number
         Returns:
             list[int]: all episode number

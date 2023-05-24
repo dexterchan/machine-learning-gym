@@ -8,6 +8,7 @@ from q_learning_lab.adapter.intraday_market.data_input import (
     Random_File_Access_Data_Source,
     Historical_File_Access_Data_Source
 )
+import pandas as pd
 import pytest
 from datetime import datetime, timedelta
 from q_learning_lab.utility.logging import get_logger
@@ -15,21 +16,7 @@ import math
 logger = get_logger(__name__)
 
 
-@pytest.fixture()
-def get_TrainingDataBundleParameter() -> TrainingDataBundleParameter:
-    bundle_param: TrainingDataBundleParameter = TrainingDataBundleParameter(
-        input_data_dir=os.environ.get("DATA_DIR"),
-        exchange="kraken",
-        symbol="ETHUSD",
-        start_date_ymd="20220401",
-        end_date_ymd="20230401",
-        data_length_days=3,
-        data_step=1,
-        split_ratio=0.9,
-        output_data_dir="/tmp/output",
-        candle_size_minutes=15,
-    )
-    return bundle_param
+
 
 input_data_dir = os.environ.get("DATA_DIR")
 def test_training_data(get_TrainingDataBundleParameter) -> None:
@@ -75,7 +62,8 @@ def test_historical_data(get_TrainingDataBundleParameter) -> None:
     assert isinstance(data_source, Historical_File_Access_Data_Source)
     start_date:datetime = datetime.strptime(bundle_param.start_date_ymd, "%Y%m%d")
     end_date:datetime = start_date + timedelta(days=1)
-    candles = data_source.get_market_data_candles(start_date=start_date, end_date=end_date)
+    data_source.reset(start_date=start_date, end_date=end_date)
+    candles = data_source.get_market_data_candles()
     assert candles is not None
     assert len(candles) > 0
     outofrange = candles[((candles.index<start_date) | (candles.index>end_date))]
@@ -83,4 +71,32 @@ def test_historical_data(get_TrainingDataBundleParameter) -> None:
     
     #logger.info(candles)
     pass
+
+def test_random_data(get_TrainingDataBundleParameter) -> None:
+    bundle_param = get_TrainingDataBundleParameter
+
+    training_data_source, eval_data_source = File_Data_Source_Factory.prepare_training_eval_data_source(
+        bundle_para=bundle_param
+    )
+
+    df:pd.DataFrame = training_data_source.get_market_data_candles()
+    assert df is not None
+    start_date = df.index[0]
+    end_date = df.index[-1]
+    logger.info(f"start_date: {start_date}, end_date: {end_date}")
+    logger.info(f"time length: {end_date-start_date}")
+    assert (end_date-start_date).days == bundle_param.data_length_days
+
+    df2:pd.DataFrame = training_data_source.get_market_data_candles()
+    assert start_date == df2.index[0]
+    assert end_date == df2.index[-1]
+
+    training_data_source.reset()
+    df3:pd.DataFrame = training_data_source.get_market_data_candles()
+    assert start_date != df3.index[0]
+    assert end_date != df3.index[-1]
+    assert (df3.index[-1]-df3.index[0]).days == bundle_param.data_length_days
+
+    
+    assert len(training_data_source.all_episode_numbers) > len(eval_data_source.all_episode_numbers) > 0
 
