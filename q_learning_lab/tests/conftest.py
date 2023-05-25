@@ -23,3 +23,16 @@ def get_TrainingDataBundleParameter() -> TrainingDataBundleParameter:
 def get_feature_schema() -> dict[str, list]:
     with open("scripts/models/ohlcv_feature_schema.json", "r") as f:
         return json.load(f)
+    
+
+from q_learning_lab.adapter.intraday_market.data_input import (
+    Data_Source,
+    File_Data_Source_Factory
+)
+
+@pytest.fixture()
+def get_training_eval_test_data_source(get_TrainingDataBundleParameter) -> tuple[Data_Source, Data_Source]:
+    train_data_source, eval_data_source = File_Data_Source_Factory.prepare_training_eval_data_source(
+        bundle_para=get_TrainingDataBundleParameter
+    )
+    return train_data_source, eval_data_source
