@@ -91,6 +91,7 @@ ENV/
 # Spyder project settings
 .spyderproject
 .spyproject
+static*.tgz
 
 # Rope project settings
 .ropeproject
