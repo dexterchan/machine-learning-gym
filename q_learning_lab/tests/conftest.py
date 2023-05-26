@@ -2,6 +2,12 @@ import pytest
 import os
 from q_learning_lab.adapter.intraday_market.training_interface import TrainingDataBundleParameter
 import json
+import random
+import string
+
+#random character in 10 length  
+def random_choice(dim:int=10):
+    return ''.join(random.choice(string.ascii_letters) for i in range(dim))
 
 @pytest.fixture()
 def get_TrainingDataBundleParameter() -> TrainingDataBundleParameter:
@@ -14,7 +20,7 @@ def get_TrainingDataBundleParameter() -> TrainingDataBundleParameter:
         data_length_days=10,
         data_step=1,
         split_ratio=0.9,
-        output_data_dir="/tmp/output",
+        output_data_dir=f"/tmp/output/{random_choice()}",
         candle_size_minutes=15,
     )
     return bundle_param

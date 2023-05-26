@@ -12,6 +12,8 @@ import random
 from functools import cached_property
 from datetime import datetime, timedelta
 from crypto_feature_preprocess.port.interfaces import Training_Eval_Enum
+from cryptomarketdata.port.db_client import get_data_db_client, Database_Type
+from cachetools import cached, TTLCache, LRUCache
 
 logger = get_logger(__name__)
 class Data_Source(ABC):
@@ -36,7 +38,8 @@ class Data_Source_Enum(str, ):
     HISTORICAL = "HISTORICAL"
     REALTIME = "REALTIME"
 
-from cryptomarketdata.port.db_client import get_data_db_client, Database_Type
+
+
 class Historical_File_Access_Data_Source(Data_Source):
     def __init__(self, parquet_file_path:str, exchange:str, symbol:str) -> None:
         """ Historical file access data source
@@ -54,6 +57,8 @@ class Historical_File_Access_Data_Source(Data_Source):
         )
         self._start_date = datetime.now() - timedelta(days=30)
         self._end_date = datetime.now()
+        self._cache = LRUCache(maxsize=100)
+        pass
         
 
     def get_market_data_candles(self) -> pd.DataFrame:
@@ -64,13 +69,22 @@ class Historical_File_Access_Data_Source(Data_Source):
         #Read parquet file and filter the index by start_date and end_date
         from_time:int = int(self.start_date.timestamp()*1000)
         to_time:int = int(self.end_date.timestamp()*1000)
-
+        key:str = self._cache_key()
+        if key in self._cache:
+            return self._cache[key]
         df = self.db_client.get_candles(
             symbol=self.symbol,
             from_time=from_time,
             to_time=to_time,
         )
+        self._cache[key] = df
+        
         return df
+    
+    def _cache_key(self) -> str:
+        from_time:int = int(self.start_date.timestamp()*1000)
+        to_time:int = int(self.end_date.timestamp()*1000)
+        return f"{self.symbol}_{from_time}_{to_time}"
     
     def reset(self, **kwargs) -> None:
         """ reset historical market data
@@ -115,6 +129,7 @@ class Random_File_Access_Data_Source(Data_Source):
         self.df: pd.DataFrame = dt.to_pandas()
         self.pick_episode = -1
         self.reset()
+        self._cache = LRUCache(maxsize=100)
         pass
     
     def get_market_data_candles(self) -> pd.DataFrame:
@@ -124,7 +139,12 @@ class Random_File_Access_Data_Source(Data_Source):
         """
         if self.pick_episode < 0:
             self.reset()
+        
+        if self.pick_episode in self._cache:
+            return self._cache[self.pick_episode]
         _df = self.get_episode_data(self.pick_episode)
+        
+        self._cache[self.pick_episode] = _df
         return _df
     
     def reset(self, **kwargs) -> None:

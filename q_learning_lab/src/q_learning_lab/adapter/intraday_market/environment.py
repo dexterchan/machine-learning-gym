@@ -14,6 +14,9 @@ import pandas as pd
 from .features.feature_port import Feature_Generator_Factory, Feature_Generator_Enum
 from .features.feature_interface import Feature_Generator_Interface
 
+from q_learning_lab.utility.logging import get_logger
+
+logger = get_logger(__name__)
 
 class FeatureRunner():
     def __init__(self, data_source:Data_Source, feature_generator_type:str, feature_plan:dict[str, list[dict]] ) -> None:
@@ -23,19 +26,44 @@ class FeatureRunner():
         for col, _feature_struct in feature_plan.items():
             self.feature_schema[col] = Feature_Generator_Factory.create_generator(self.feature_generator_type, _feature_struct)
         self.read_pointer:int = 0
+        self.feature_plan = feature_plan
         pass
-
+    
+    @property
+    def feature_observation_space_dim(self) -> int:
+        """ calcuatie the feature observation dimension
+            Return:
+                int: _description_
+        """
+        feature_dim:int = 0
+        for col, _feature_struct_lst in self.feature_plan.items():
+            for _feature_struct in _feature_struct_lst:
+                feature_dim += _feature_struct["feature_params"]["dimension"]
+        return feature_dim
     
     def calculate_features(self) -> np.ndarray:
         #Get data from data source
         df:pd.DataFrame = self._data_source.get_market_data_candles()
         features_list = []
         for col, _feature_generator in self.feature_schema.items():
+            logger.info("Calculating feature for column: %s", col)
             g:Feature_Generator_Interface = _feature_generator
             _data:np.ndarray = g.generate_feature(price_vector=df[col])
             features_list.append(_data)
+            logger.info("Feature for column: %s, shape: %s", col, _data.shape)
         
-        return np.concatenate(features_list, axis=1)
+        # Find the shortest feature length in features_list
+        shortest_feature_length = min([len(f) for f in features_list])
+
+        # Trim all feature to the same length
+        submit_feature_set = [
+            f[-shortest_feature_length:].reshape(shortest_feature_length, -1)
+            for f in features_list
+        ]
+        output_feature = np.concatenate(submit_feature_set, axis=1)
+        logger.info("Final feature shape: %s", output_feature.shape)
+        return output_feature
+        
 
     def reset(self, **kwargs):
         """reset data source and feature generator
@@ -47,18 +75,24 @@ class FeatureRunner():
 
 
 class Intraday_Market_Environment(Interface_Environment):
-    def __init__(self, params: dict, data_market_source:Data_Source) -> None:
+    def __init__(self, params: dict, feature_runner:FeatureRunner) -> None:
         #The data source can be realtime or random historical data
-
-        self._observation_space_dim = 4
+        self.feature_runner = feature_runner
+        self._observation_space_dim = feature_runner.feature_observation_space_dim
         
-
+    def _fresh_data_sources(self):
+        """fresh data sources
+        """
+        
+        pass
     def render(self):
         """Render and display current state of the environment"""
+        raise NotImplementedError("Render function not implemented yet")
         pass
 
-    def reset(self) -> tuple[np.ndarray, Any]:
+    def reset(self, **kwargs) -> tuple[np.ndarray, Any]:
         # Return numpy array of (dim,1) in shape
+        self.feature_runner.reset(**kwargs)
         return np.random.rand(self._observation_space_dim), None
 
     def step(self, action: Intraday_Trade_Action_Space) -> tuple[np.ndarray, float, bool, bool, dict]:
