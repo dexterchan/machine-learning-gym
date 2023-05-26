@@ -32,7 +32,7 @@
             "feature_type": "LOG_PRICE",
             "feature_params": {
                 "dimension": 10,
-                "normalize_value": 0.02
+                "normalize_value": 5
             }
         }
     ]

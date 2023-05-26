@@ -13,7 +13,7 @@ from functools import cached_property
 from datetime import datetime, timedelta
 from crypto_feature_preprocess.port.interfaces import Training_Eval_Enum
 from cryptomarketdata.port.db_client import get_data_db_client, Database_Type
-from cachetools import cached, TTLCache, LRUCache
+from cachetools import LRUCache
 
 logger = get_logger(__name__)
 class Data_Source(ABC):
