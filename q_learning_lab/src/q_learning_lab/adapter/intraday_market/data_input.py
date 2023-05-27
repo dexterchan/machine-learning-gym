@@ -62,8 +62,8 @@ class Historical_File_Access_Data_Source(Data_Source):
             database_type=Database_Type.PARQUET,
             data_directory=parquet_file_path,
         )
-        self._start_date = datetime.now() - timedelta(days=30)
-        self._end_date = datetime.now()
+        self._start_date = None
+        self._end_date = None
         self._cache = LRUCache(maxsize=100)
         pass
         
@@ -73,12 +73,14 @@ class Historical_File_Access_Data_Source(Data_Source):
         Returns:
             Any: OHLCV data in panda form
         """
-        #Read parquet file and filter the index by start_date and end_date
-        from_time:int = int(self.start_date.timestamp()*1000)
-        to_time:int = int(self.end_date.timestamp()*1000)
         
         if self.data_id in self._cache:
             return self._cache[self.data_id]
+        
+        #Read parquet file and filter the index by start_date and end_date
+        from_time:int = int(self.start_date.timestamp()*1000)
+        to_time:int = int(self.end_date.timestamp()*1000)
+
         df = self.db_client.get_candles(
             symbol=self.symbol,
             from_time=from_time,
@@ -90,6 +92,8 @@ class Historical_File_Access_Data_Source(Data_Source):
     
     @property
     def data_id(self) -> str:
+        if self.start_date is None or self.end_date is None:
+            raise ValueError(f"start_date or end_date is not set, Please call reset of {__name__}")
         from_time:int = int(self.start_date.timestamp()*1000)
         to_time:int = int(self.end_date.timestamp()*1000)
         return f"{self.symbol}_{from_time}_{to_time}"

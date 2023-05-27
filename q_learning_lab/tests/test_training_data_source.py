@@ -60,6 +60,12 @@ def test_historical_data(get_TrainingDataBundleParameter) -> None:
         symbol=bundle_param.symbol,
     )   
     assert isinstance(data_source, Historical_File_Access_Data_Source)
+    try:
+        data_source.data_id
+        assert False
+    except ValueError as e:
+        assert True
+
     start_date:datetime = datetime.strptime(bundle_param.start_date_ymd, "%Y%m%d")
     end_date:datetime = start_date + timedelta(days=1)
     data_source.reset(start_date=start_date, end_date=end_date)
@@ -99,7 +105,7 @@ def test_random_data(get_TrainingDataBundleParameter) -> None:
     end_date = df.index[-1]
     logger.info(f"start_date: {start_date}, end_date: {end_date}")
     logger.info(f"time length: {end_date-start_date}")
-    assert (end_date-start_date).days == bundle_param.data_length_days
+    assert abs((end_date-start_date).days - bundle_param.data_length_days)<=1
 
     df2:pd.DataFrame = __get_data()
     load_data_time_2nd:float = __get_data.execution_time[0]

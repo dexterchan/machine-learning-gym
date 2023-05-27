@@ -6,7 +6,11 @@ from enum import Enum
 
 #numeric action which is compatible with gym
 from ...domain.models.intraday_market_models import Intraday_Trade_Action_Space
+
 from  tradesignal_mtm_runner.models import Buy_Sell_Action_Enum
+from tradesignal_mtm_runner.runner_mtm import Trade_Mtm_Runner
+from tradesignal_mtm_runner.config import PnlCalcConfig
+
 from .data_input import Data_Source
 
 import pandas as pd
@@ -28,6 +32,7 @@ class FeatureRunner():
             self.feature_schema[col] = Feature_Generator_Factory.create_generator(self.feature_generator_type, _feature_struct)
         self.read_pointer:int = 0
         self.feature_plan = feature_plan
+        self._feature_cache:LRUCache = LRUCache(maxsize=100)
         pass
     
     @property
@@ -50,6 +55,12 @@ class FeatureRunner():
         Returns:
             Feature_Output: _description_
         """
+        #Check cache
+        #Return cached feature if exists
+        if self._data_source.data_id in self._feature_cache:
+            return self._feature_cache[self._data_source.data_id]
+        
+        #If not in cache, calculate feature
         #Get data from data source
         df:pd.DataFrame = self._data_source.get_market_data_candles()
         features_output_list:list[Feature_Output] = []
@@ -61,7 +72,9 @@ class FeatureRunner():
             logger.info("Feature for column: %s, shape: %s", col, feature_output.feature_data.shape)
         
         new_feature_output:Feature_Output = Feature_Output.merge_feature_output_list(feature_output_list=features_output_list)
-        logger.info("Final feature shape: %s", new_feature_output.feature_data)
+        logger.info("Final feature shape: %s", new_feature_output.feature_data.shape)
+        #Cache feature
+        self._feature_cache[self._data_source.data_id] = new_feature_output
         return new_feature_output
         
 
@@ -71,16 +84,30 @@ class FeatureRunner():
         self._data_source.reset(kwargs=kwargs)
         pass
 
+    def stateful_step(self) -> np.ndarray:
+        """return feature data for current step
+        """
+
+        self._data_source.stateful_step(kwargs=kwargs)
+        pass
+
 
 
 
 class Intraday_Market_Environment(Interface_Environment):
-    def __init__(self, params: dict, feature_runner:FeatureRunner) -> None:
+
+    def __init__(self, params: dict ) -> None:
         #The data source can be realtime or random historical data
-        self.feature_runner = feature_runner
-        self._observation_space_dim = feature_runner.feature_observation_space_dim
+        self._observation_space_dim = 0
+        self.feature_runner:FeatureRunner = None
+        self.reward_generator:Trade_Mtm_Runner = None
         
-    def _fresh_data_sources(self):
+
+    def register_feature_runner(self, feature_runner:FeatureRunner):
+        self.feature_runner = feature_runner    
+        self._observation_space_dim += feature_runner.feature_observation_space_dim
+    
+    def _fresh_features(self):
         """fresh data sources
         """
         
