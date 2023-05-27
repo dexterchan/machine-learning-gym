@@ -30,6 +30,13 @@ class Data_Source(ABC):
         """ reset data source
         """
         pass
+    
+    @abstractproperty
+    def data_id(self) -> str:
+        """ get data id
+            useful when u want to cache feature calculation from the data source
+        """
+        pass
 
     
 
@@ -69,19 +76,20 @@ class Historical_File_Access_Data_Source(Data_Source):
         #Read parquet file and filter the index by start_date and end_date
         from_time:int = int(self.start_date.timestamp()*1000)
         to_time:int = int(self.end_date.timestamp()*1000)
-        key:str = self._cache_key()
-        if key in self._cache:
-            return self._cache[key]
+        
+        if self.data_id in self._cache:
+            return self._cache[self.data_id]
         df = self.db_client.get_candles(
             symbol=self.symbol,
             from_time=from_time,
             to_time=to_time,
         )
-        self._cache[key] = df
+        self._cache[self.data_id] = df
         
         return df
     
-    def _cache_key(self) -> str:
+    @property
+    def data_id(self) -> str:
         from_time:int = int(self.start_date.timestamp()*1000)
         to_time:int = int(self.end_date.timestamp()*1000)
         return f"{self.symbol}_{from_time}_{to_time}"
@@ -140,12 +148,16 @@ class Random_File_Access_Data_Source(Data_Source):
         if self.pick_episode < 0:
             self.reset()
         
-        if self.pick_episode in self._cache:
-            return self._cache[self.pick_episode]
+        if self.data_id in self._cache:
+            return self._cache[self.data_id]
         _df = self.get_episode_data(self.pick_episode)
         
-        self._cache[self.pick_episode] = _df
+        self._cache[self.data_id ] = _df
         return _df
+    
+    @property
+    def data_id(self) -> str:
+        return str(self.pick_episode)
     
     def reset(self, **kwargs) -> None:
         """ reset historical market data

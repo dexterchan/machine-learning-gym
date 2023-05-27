@@ -13,8 +13,9 @@ import pandas as pd
 #Import crypto_feature_precess package here
 from .features.feature_port import Feature_Generator_Factory, Feature_Generator_Enum
 from .features.feature_interface import Feature_Generator_Interface
-
+from crypto_feature_preprocess.port.features import Feature_Output
 from q_learning_lab.utility.logging import get_logger
+from cachetools import LRUCache                 
 
 logger = get_logger(__name__)
 
@@ -41,28 +42,27 @@ class FeatureRunner():
                 feature_dim += _feature_struct["feature_params"]["dimension"]
         return feature_dim
     
-    def calculate_features(self) -> np.ndarray:
+    def calculate_features(self) -> Feature_Output:
+        """ calculate features
+            it should have cached feature data to avoid re-calculate for each call
+            the cache can be reset by calling reset()
+
+        Returns:
+            Feature_Output: _description_
+        """
         #Get data from data source
         df:pd.DataFrame = self._data_source.get_market_data_candles()
-        features_list = []
+        features_output_list:list[Feature_Output] = []
         for col, _feature_generator in self.feature_schema.items():
             logger.info("Calculating feature for column: %s", col)
             g:Feature_Generator_Interface = _feature_generator
-            _data:np.ndarray = g.generate_feature(price_vector=df[col])
-            features_list.append(_data)
-            logger.info("Feature for column: %s, shape: %s", col, _data.shape)
+            feature_output:Feature_Output = g.generate_feature(data_vector=df[col])
+            features_output_list.append(feature_output)
+            logger.info("Feature for column: %s, shape: %s", col, feature_output.feature_data.shape)
         
-        # Find the shortest feature length in features_list
-        shortest_feature_length = min([len(f) for f in features_list])
-
-        # Trim all feature to the same length
-        submit_feature_set = [
-            f[-shortest_feature_length:].reshape(shortest_feature_length, -1)
-            for f in features_list
-        ]
-        output_feature = np.concatenate(submit_feature_set, axis=1)
-        logger.info("Final feature shape: %s", output_feature.shape)
-        return output_feature
+        new_feature_output:Feature_Output = Feature_Output.merge_feature_output_list(feature_output_list=features_output_list)
+        logger.info("Final feature shape: %s", new_feature_output.feature_data)
+        return new_feature_output
         
 
     def reset(self, **kwargs):

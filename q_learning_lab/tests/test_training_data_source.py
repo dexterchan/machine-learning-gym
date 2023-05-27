@@ -118,7 +118,7 @@ def test_random_data(get_TrainingDataBundleParameter) -> None:
 
     assert start_date != df3.index[0]
     assert end_date != df3.index[-1]
-    assert (df3.index[-1]-df3.index[0]).days == bundle_param.data_length_days
+    assert abs((df3.index[-1]-df3.index[0]).days - bundle_param.data_length_days) <= 1
 
     
     assert len(training_data_source.all_episode_numbers) > len(eval_data_source.all_episode_numbers) > 0

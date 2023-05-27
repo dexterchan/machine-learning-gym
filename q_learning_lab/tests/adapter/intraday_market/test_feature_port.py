@@ -10,7 +10,7 @@ import pytest
 import json
 
 logger = get_logger(__name__)
-
+from crypto_feature_preprocess.port.features import Feature_Output
 
 
 
@@ -24,8 +24,9 @@ def test_feature_factory(get_feature_schema, get_training_eval_test_data_source)
         feature_schema[field] = Feature_Generator_Factory.create_generator(
             generator_type=Feature_Generator_Enum.OHLCV, feature_list_input=detail_list)
         assert feature_schema[field] is not None
-    feature_vectors_dict:dict[str, list] = {}
+    feature_vectors_dict:dict[str, Feature_Output] = {}
     for field, feature_generator in feature_schema.items():
         ohlcv_candles = training_data_source.get_market_data_candles()
-        feature_vectors_dict[field] = feature_generator.generate_feature(price_vector=ohlcv_candles[field])
+        feature_vectors_dict[field] = feature_generator.generate_feature(data_vector=ohlcv_candles[field])
+        assert isinstance(feature_vectors_dict[field], Feature_Output)
     pass

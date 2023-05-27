@@ -7,9 +7,14 @@ from crypto_feature_preprocess.port.interfaces import (
     RSI_Feature_Interface,
     Log_Price_Feature_Interface,
     SMA_Cross_Feature_Interface,
-    Feature_Enum
+    Feature_Enum,
 )
-from crypto_feature_preprocess.port.features import create_feature_from_one_dim_data
+from crypto_feature_preprocess.port.features import (
+    create_feature_from_one_dim_data,
+    create_feature_from_one_dim_data_v2,
+    Feature_Output
+)
+from q_learning_lab.utility.tools import deprecated
 from .feature_interface import Feature_Generator_Interface
 
 class OHLCV_Feature_Generator(Feature_Generator_Interface):
@@ -61,8 +66,10 @@ class OHLCV_Feature_Generator(Feature_Generator_Interface):
 
         return feature_list
     
-    def generate_feature(self, price_vector:pd.Series) -> np.ndarray:
-        """generate feature vector from candle data following given feature input requirement
+
+    @deprecated()
+    def generate_feature_v1(self, price_vector:pd.Series) -> np.ndarray:
+        """[Deprecated] generate feature vector from candle data following given feature input requirement
 
         Args:
             price_vector (pd.Series): Price vector e.g. close price, volume
@@ -77,3 +84,19 @@ class OHLCV_Feature_Generator(Feature_Generator_Interface):
         )
 
         return feature
+    
+    def generate_feature(self, data_vector:pd.Series) -> Feature_Output:
+        """Generate feature vector from candle data following given feature input requirement
+
+        Args:
+            data_vector (pd.Series): Price vector e.g. close price, volume
+
+        Returns:
+            Feature_Output: Feature output structured data
+        """
+
+        feature_output:Feature_Output = create_feature_from_one_dim_data_v2(
+            data_vector=data_vector,
+            feature_schema_list=self.feature_list
+        )
+        return feature_output

@@ -33,3 +33,15 @@ def timeit(verbose: bool = False):
         return wrapper
 
     return decorator
+
+def deprecated():
+    
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            logger.warning(f"Function {func.__name__} is deprecated")
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
