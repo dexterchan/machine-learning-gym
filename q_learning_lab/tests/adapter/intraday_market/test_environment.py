@@ -1,75 +1,61 @@
-from q_learning_lab.adapter.intraday_market.environment import FeatureRunner
-from crypto_feature_preprocess.port.features import Feature_Output
-import numpy as np
 import json
-from q_learning_lab.utility.tools import timeit
 
 from q_learning_lab.utility.logging import get_logger
-
+from q_learning_lab.adapter.intraday_market.environment import Intraday_Market_Environment
+from q_learning_lab.adapter.intraday_market.environment import FeatureRunner
+from q_learning_lab.adapter.intraday_market.environment import Intraday_Trade_Action_Space, Buy_Sell_Action_Enum
+import pandas as pd
+import numpy as np
 logger = get_logger(__name__)
-# from q_learning_lab.adapter.intraday_market.data_input import (
-#     Data_Source,
-#     File_Data_Source_Factory,
-#     Random_File_Access_Data_Source
-# )
-# test FeatureRunner
-# Path: tests/adapter/intraday_market/test_environment.py
-
-def test_feature_runner(get_feature_schema, get_training_eval_test_data_source) -> None:
-
-    train_data_source, eval_data_source = get_training_eval_test_data_source
+def test_intraday_market_environment(
+        get_feature_schema, 
+        get_training_eval_test_data_source,
+        get_intraday_config) -> None:
+    
+    train_data_source, _ = get_training_eval_test_data_source
     train_runner:FeatureRunner = FeatureRunner(
         data_source=train_data_source,
         feature_generator_type="OHLCV",
         feature_plan=get_feature_schema,
     )
-    eval_runner:FeatureRunner = FeatureRunner(
-        data_source=eval_data_source,
-        feature_generator_type="OHLCV",
-        feature_plan=get_feature_schema,
-    )
-    @timeit()
-    def __calculate_feature(runner:FeatureRunner) -> Feature_Output:
-        return runner.calculate_features()
-    # Run the reset
-    train_runner.reset()
-    train_feature:Feature_Output =__calculate_feature(train_runner)
-    train_feature1_data_id = train_runner._data_source.data_id
-    train_execution_time1 = __calculate_feature.execution_time[0]
-    logger.info(f"train_execution_time1: {train_execution_time1} with data id: {train_runner._data_source.data_id}")
-    eval_feature:Feature_Output = __calculate_feature(eval_runner)
-    eval_execution_time = __calculate_feature.execution_time[0]
 
-    assert train_feature.feature_data is not None
-    train_row, train_col = train_feature.feature_data.shape
-    eval_row, eval_col = eval_feature.feature_data.shape
-    assert train_col == train_runner.feature_observation_space_dim == eval_col == eval_runner.feature_observation_space_dim
-    assert train_row > 0
-    assert eval_row > 0
-    #CHeck the time index
-    assert train_feature.time_index is not None
-    assert eval_feature.time_index is not None
-    # Check train_feature time_index consistent with original data source
-    assert (train_feature.time_index == train_runner._data_source.get_market_data_candles().index[-train_row:]).all()
+    intraday_config_dict:dict = get_intraday_config
 
-    train_feature2:Feature_Output =__calculate_feature(train_runner)
-    train_execution_time2 = __calculate_feature.execution_time[0]
-    logger.info(f"train_execution_time2: {train_execution_time2} with data id: {train_runner._data_source.data_id}")
-    
-    assert train_execution_time1 > train_execution_time2, f"train_execution_time1: {train_execution_time1}, train_execution_time2: {train_execution_time2}"
+    intraday_market_train_env: Intraday_Market_Environment = Intraday_Market_Environment()
+    intraday_market_train_env.register_feature_runner(train_runner)
+    intraday_market_train_env.register_reward_generator(intraday_config_dict["pnl_config"])
 
-    # Check the feature data is consistent with the original data source
-    assert (train_feature.feature_data == train_feature2.feature_data).all()
+    observation, time_inx = intraday_market_train_env.reset()
+    logger.info(f"observation: {observation}")
+    # logger.info(f"time_inx: {time_inx}")
+    # logger.info(f"time_inx: {type(time_inx)}")
 
-    # Check feature generation after reset
-    train_runner.reset()
-    train_feature3_data_id = train_runner._data_source.data_id
-    assert train_feature3_data_id != train_feature1_data_id
-    train_feature3:Feature_Output =__calculate_feature(train_runner)
-    
-    train_execution_time3 = __calculate_feature.execution_time[0]
-    logger.info(f"train_execution_time3: {train_execution_time3} with data id: {train_runner._data_source.data_id}")
-    assert train_execution_time3 > train_execution_time2, f"train_execution_time3: {train_execution_time3}, train_execution_time2: {train_execution_time2}"
-    if train_feature.feature_data.shape == train_feature3.feature_data.shape:
-        assert np.not_equal(train_feature.feature_data, train_feature3.feature_data).any()
+    ##time_inx_timestamp = (pd.to_numeric(time_inx) / 1000000).astype("int64")
+    try:
+        intraday_market_train_env.step(action=Buy_Sell_Action_Enum.BUY)
+        assert False, "should be invalid action"
+    except ValueError as e:
+        pass
     pass
+
+    #print(intraday_market_train_env._current_data)
+
+    states, reward, done, truncated, info = intraday_market_train_env.step(action=Intraday_Trade_Action_Space.BUY)
+    inx = info['inx']
+    time_inx = info['time_inx']
+    #print(intraday_market_train_env._current_data)
+    _data = intraday_market_train_env._current_data
+
+    logger.critical(_data[:time_inx])
+    #print(_data[_data["buy"]!=0])
+
+    logger.info(f"states: {states}")
+    logger.info(f"reward: {reward}")
+    logger.info(f"done: {done}")
+    logger.info(f"truncated: {truncated}")
+    logger.info(f"mtm: {np.sum(info['mtm_ratio'])}")
+    logger.info(f"time_inx: {info['time_inx']}")
+    logger.info(f"inx: {info['inx']}")
+    logger.info(f"long_trade_outstanding: {info['long_trade_outstanding']}")
+    logger.info(f"long_trade_archive: {info['long_trade_archive']}")
+    

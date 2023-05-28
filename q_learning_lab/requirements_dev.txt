@@ -7,6 +7,6 @@ coverage
 Sphinx
 twine
 pytest
-
+pytest-watch
 
 

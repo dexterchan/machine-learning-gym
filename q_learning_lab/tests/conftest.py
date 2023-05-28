@@ -15,7 +15,7 @@ def get_TrainingDataBundleParameter() -> TrainingDataBundleParameter:
         input_data_dir=os.environ.get("DATA_DIR"),
         exchange="kraken",
         symbol="ETHUSD",
-        start_date_ymd="20220401",
+        start_date_ymd="20230301",#"20220401",
         end_date_ymd="20230401",
         data_length_days=10,
         data_step=1,
@@ -42,3 +42,8 @@ def get_training_eval_test_data_source(get_TrainingDataBundleParameter) -> tuple
         bundle_para=get_TrainingDataBundleParameter
     )
     return train_data_source, eval_data_source
+
+@pytest.fixture()
+def get_intraday_config() -> dict:
+    with open("./scripts/config/intraday_config.json", "r") as f:
+        return json.load(f)
