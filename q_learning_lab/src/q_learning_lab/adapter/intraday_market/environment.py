@@ -204,20 +204,21 @@ class Intraday_Market_Environment(Interface_Environment):
             self._current_data.loc[self._current_data.index == time_inx, ["sell"]] = 1
         
         #update reward history
+        inx = self._current_data[self._current_data.index == time_inx]["inx"][0]
         mtm_result:Mtm_Result = self.reward_generator.calculate(
             symbol=self.symbol,
             buy_signal_dataframe=self._current_data[:time_inx],
             sell_signal_dataframe=self._current_data[:time_inx],
         )
         # read pnl_timeline dict and extract "mtm_ratio" by the key: datetime ms timestamp
-        
-        inx = self._current_data[self._current_data.index == time_inx]["inx"]
+        reward = mtm_result.pnl_timeline["mtm_ratio"][inx]
+        #reward = rewards[0] if len(rewards) > 0 else 0
         
         return (
             observation,
-            random.random(),
+            reward,
             end_of_episode,
-            random.choice([True, False]),
+            False,
             {"mtm_ratio":(mtm_result.pnl_timeline["mtm_ratio"]),
              "time_inx":time_inx,
              "inx":inx,
