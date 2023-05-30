@@ -8,7 +8,7 @@ from enum import Enum
 from ...domain.models.intraday_market_models import Intraday_Trade_Action_Space 
 
 from tradesignal_mtm_runner.models import Buy_Sell_Action_Enum, Mtm_Result
-from tradesignal_mtm_runner.runner_mtm import Trade_Mtm_Runner
+from tradesignal_mtm_runner.trade_reward import TradeBookKeeperAgent
 from tradesignal_mtm_runner.config import PnlCalcConfig
 
 
@@ -128,10 +128,13 @@ class Intraday_Market_Environment(Interface_Environment):
     def __init__(self, params: Optional[dict]={}) -> None:
         #The data source can be realtime or random historical data
         self.symbol:str = params.get("symbol", "unknown")
+        self.price_movement_col:str = params.get("price_movement_col", "close")
         self._observation_space_dim = 0
         self._feature_runner:FeatureRunner = None
-        self.reward_generator:Trade_Mtm_Runner = None
+        self._pnl_calc_config:PnlCalcConfig = None
         self._current_data:pd.DataFrame = None
+        self._trade_order_agent:TradeBookKeeperAgent = None
+        self._step_counter:int = 0
         
 
     def register_feature_runner(self, feature_runner:FeatureRunner):
@@ -139,18 +142,17 @@ class Intraday_Market_Environment(Interface_Environment):
         self._observation_space_dim += feature_runner.feature_observation_space_dim
     
     
-    def register_reward_generator(self, reward_generator:Union[Trade_Mtm_Runner, dict]):
+    def register_pnl_calc_config(self, pnl_calc_config:Union[PnlCalcConfig, dict]):
         """_summary_
 
         Args:
-            reward_generator (Union): either Trade_Mtm_Runner or dict of PnlCalcConfig
+            pnl_calc_config (Union): either PnlCalcConfig or dict of PnlCalcConfig
         """
-        if isinstance(reward_generator, dict):
+        if isinstance(pnl_calc_config, dict):
             #convert dict to PnlCalcConfig
-            pnl_calc_config:PnlCalcConfig = PnlCalcConfig(**reward_generator)
-            self.reward_generator = Trade_Mtm_Runner(pnl_config=pnl_calc_config)
+            self._pnl_calc_config = PnlCalcConfig(**pnl_calc_config)
         else:
-            self.reward_generator = reward_generator
+            self._pnl_calc_config = pnl_calc_config
         pass
 
     def render(self):
@@ -163,10 +165,18 @@ class Intraday_Market_Environment(Interface_Environment):
         self._feature_runner.reset(**kwargs)
         observation, time_inx, _ = self._feature_runner.stateful_step(increment_step=False)
         logger.info("Reset environment, current time index: %s", time_inx)
+        #Reset current data
         self._current_data = self._feature_runner.get_current_market_data().copy()
         self._current_data["buy"] = 0
         self._current_data["sell"] = 0
+        self._current_data["price_movement"] = self._current_data[self.price_movement_col].diff(1)
         self._current_data["inx"] = np.arange(len(self._current_data))
+
+        #Reset trade order agent if we reset the environment
+        self._trade_order_agent = TradeBookKeeperAgent(
+            symbol=self.symbol, pnl_config=self._pnl_calc_config, fixed_unit=True
+        )
+        self._step_counter = 0
         return observation, time_inx
 
     def step(self, action: Intraday_Trade_Action_Space) -> tuple[np.ndarray, float, bool, bool, dict]:
@@ -187,9 +197,9 @@ class Intraday_Market_Environment(Interface_Environment):
         #Check if feature runner is registered
         if self._feature_runner is None:
             raise ValueError("Feature runner is not registered")
-        #Check if reward generator is registered
-        if self.reward_generator is None:
-            raise ValueError("Reward generator is not registered")
+        #Check if trade order generator is registered
+        if self._trade_order_agent is None:
+            raise ValueError("trade order generator is not registered, please register pnl_calc_config and reset the environment")
         #Check if action is valid
         if not isinstance(action, Intraday_Trade_Action_Space):
             raise ValueError("Action is not valid")
@@ -203,27 +213,47 @@ class Intraday_Market_Environment(Interface_Environment):
         elif buy_sell_action_space == Buy_Sell_Action_Enum.SELL:
             self._current_data.loc[self._current_data.index == time_inx, ["sell"]] = 1
         
-        #update reward history
-        inx = self._current_data[self._current_data.index == time_inx]["inx"][0]
-        mtm_result:Mtm_Result = self.reward_generator.calculate(
-            symbol=self.symbol,
-            buy_signal_dataframe=self._current_data[:time_inx],
-            sell_signal_dataframe=self._current_data[:time_inx],
-        )
-        # read pnl_timeline dict and extract "mtm_ratio" by the key: datetime ms timestamp
-        reward = mtm_result.pnl_timeline["mtm_ratio"][inx]
-        #reward = rewards[0] if len(rewards) > 0 else 0
+        #Run the trade order agent at time stamp
+        #inx:int = self._current_data[self._current_data.index == time_inx]["inx"][0]
+        _price_value, _price_movement , _inx = self._current_data.loc[self._current_data.index == time_inx, 
+                                                               [self.price_movement_col,
+                                                                "price_movement", 
+                                                                "inx"] ] \
+                                                                .values[0].tolist()
         
+        self._trade_order_agent.run_at_timestamp(
+                dt=time_inx.to_pydatetime(),
+                price=_price_value,
+                price_diff=_price_movement,
+                buy_sell_action=buy_sell_action_space,
+            )
+        logger.debug("MTM history: %s", self._trade_order_agent.mtm_history)
+        logger.debug("MTM history length: %s", len(self._trade_order_agent.mtm_history))
+        interm_reward = self._trade_order_agent.mtm_history[self.step_counter]
+
+        # #update reward history
+        # inx = self._current_data[self._current_data.index == time_inx]["inx"][0]
+        # mtm_result:Mtm_Result = self.reward_generator.calculate(
+        #     symbol=self.symbol,
+        #     buy_signal_dataframe=self._current_data[:time_inx],
+        #     sell_signal_dataframe=self._current_data[:time_inx],
+        # )
+        # # read pnl_timeline dict and extract "mtm_ratio" by the key: datetime ms timestamp
+        # reward = mtm_result.pnl_timeline["mtm_ratio"][inx]
+        # #reward = rewards[0] if len(rewards) > 0 else 0
+        
+        #increment the step counter
+        self.step_counter += 1
         return (
             observation,
-            reward,
+            interm_reward,
             end_of_episode,
             False,
-            {"mtm_ratio":(mtm_result.pnl_timeline["mtm_ratio"]),
+            {"mtm_ratio":(self._trade_order_agent.mtm_history),
              "time_inx":time_inx,
-             "inx":inx,
-             "long_trade_outstanding":mtm_result.long_trades_outstanding,
-             "long_trade_archive":mtm_result.long_trades_archive,},
+             "inx":int(_inx),
+             "long_trade_outstanding":self._trade_order_agent.outstanding_long_position_list,
+             "long_trade_archive":self._trade_order_agent.archive_long_positions_list},
         )
 
     def close(self):
@@ -268,3 +298,21 @@ class Intraday_Market_Environment(Interface_Environment):
             tuple[int]: dimension of the observation space
         """
         return (self._observation_space_dim,)
+    
+    @property
+    def step_counter(self) -> int:
+        """Return step counter
+
+        Returns:
+            int: step counter
+        """
+        return self._step_counter
+    
+    @step_counter.setter
+    def step_counter(self, value:int):
+        """Set step counter
+
+        Args:
+            value (int): value to be set
+        """
+        self._step_counter = value
