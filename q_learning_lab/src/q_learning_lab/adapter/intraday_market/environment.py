@@ -111,7 +111,7 @@ class FeatureRunner():
         
 
         #check the boundary if it is the end:
-        if self.read_pointer < num_of_feature-1 and increment_step:
+        if self.read_pointer < num_of_feature and increment_step:
             self.read_pointer+=1
         if self.read_pointer >= num_of_feature:
             end_of_episode = True
