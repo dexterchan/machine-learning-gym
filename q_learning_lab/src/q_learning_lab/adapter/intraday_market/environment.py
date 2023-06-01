@@ -206,6 +206,7 @@ class Intraday_Market_Environment(Interface_Environment):
 
         #Convert Intraday_Trade_Action_Space to Buy_Sell_Action_Enum of tradesignal runner
         buy_sell_action_space:Buy_Sell_Action_Enum = Intraday_Trade_Action_Space.convert_to_buy_sell_action_enum(action)
+        logger.debug("Step %s, action: %s", self._step_counter, buy_sell_action_space)
         #Get current observation
         observation, time_inx, end_of_episode = self._feature_runner.stateful_step(increment_step=True)
         if buy_sell_action_space == Buy_Sell_Action_Enum.BUY:

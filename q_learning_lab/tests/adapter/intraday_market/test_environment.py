@@ -5,6 +5,7 @@ from q_learning_lab.adapter.intraday_market.environment import Intraday_Market_E
 from q_learning_lab.adapter.intraday_market.environment import FeatureRunner
 from q_learning_lab.adapter.intraday_market.environment import Intraday_Trade_Action_Space, Buy_Sell_Action_Enum
 from crypto_feature_preprocess.port.features import Feature_Output
+from tradesignal_mtm_runner.models import ProxyTrade
 import pandas as pd
 import numpy as np
 import random
@@ -48,16 +49,19 @@ def test_intraday_market_environment(
     assert f_out.feature_data.shape[0] < total_episode_length
     num_of_features = f_out.feature_data.shape[0]
 
-    states, reward, done, truncated, info = intraday_market_train_env.step(action=Intraday_Trade_Action_Space.BUY)
+    states, reward, done, truncated, _ = intraday_market_train_env.step(action=Intraday_Trade_Action_Space.BUY)
 
+    outstanding_long_position_list:list[ProxyTrade] = intraday_market_train_env._trade_order_agent.outstanding_long_position_list
+    archive_long_position_list:list[ProxyTrade] = intraday_market_train_env._trade_order_agent.archive_long_positions_list
+    
     assert reward == -intraday_config_dict["pnl_config"]["fee_rate"]
-    inx = info['inx']
-    time_inx = info['time_inx']
-    logger.debug(f"{type(time_inx)}")
-    assert len(info['mtm_ratio']) == intraday_market_train_env.step_counter 
-    assert len(info['mtm_ratio']) != 0
-    assert len(info['long_trade_outstanding']) == 1, "only 1 trade in the first step"
-    assert len(info['long_trade_archive'])==0
+    # inx = info['inx']
+    # time_inx = info['time_inx']
+    
+    assert len(intraday_market_train_env._trade_order_agent.mtm_history) > 0
+    assert len(intraday_market_train_env._trade_order_agent.mtm_history) == intraday_market_train_env.step_counter 
+    assert len(outstanding_long_position_list) == 1, "only 1 trade in the first step"
+    assert len(archive_long_position_list)==0
     assert done == False
 
     current_data = intraday_market_train_env._current_data
@@ -66,13 +70,16 @@ def test_intraday_market_environment(
     logger.info(f"step_counter: {intraday_market_train_env._feature_runner.read_pointer} of {num_of_features}")
 
     monitoring = False
+    assert len(outstanding_long_position_list) == 1
+    logger.critical(f"outstanding_long_position_list: {outstanding_long_position_list}")
     while intraday_market_train_env._feature_runner.read_pointer<num_of_features:
         states, reward, done, truncated, info = intraday_market_train_env.step(action=Intraday_Trade_Action_Space.HOLD)
-        if len(intraday_market_train_env._trade_order_agent.outstanding_long_position_list)==0:
-            logger.critical("spot trade closed")
+        if len(archive_long_position_list)>0:
+            logger.debug("spot trade closed")
             monitoring = True
-        if monitoring and len(intraday_market_train_env._trade_order_agent.outstanding_long_position_list)>0:
+        if monitoring and len(outstanding_long_position_list)>0:
             logger.critical("trade reopen again")
+            logger.critical(f"outstanding_long_position_list: {outstanding_long_position_list}")
             assert False, "trade issue"
             break
 
@@ -80,16 +87,8 @@ def test_intraday_market_environment(
 
     assert done == True
     assert len(intraday_market_train_env._trade_order_agent.outstanding_long_position_list) == 0, "all trade should be done"
-    assert len(info['long_trade_archive']) == 1, "only 1 trade should be done"
-    # while not done :
-    #     states, reward, done, truncated, info = intraday_market_train_env.step(action=Intraday_Trade_Action_Space.HOLD)
-    #     assert done == False, f"done == False at step {intraday_market_train_env.step_counter} of {total_episode_length}"
-    #     assert len(info['mtm_ratio']) == intraday_market_train_env.step_counter 
-    #     # assert len(info['long_trade_outstanding']) == 1, "only 1 trade in the first step"
-    #     # assert len(info['long_trade_archive'])==0
-    # logger.info(f"step_counter: {intraday_market_train_env.step_counter} of {total_episode_length}")
-    # logger.info(f"Long archive:{intraday_market_train_env._trade_order_agent.archive_long_positions_list}")
-
+    assert len(archive_long_position_list) == 1, "only 1 trade should be done"
+    
         
     
     

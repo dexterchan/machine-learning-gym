@@ -23,11 +23,11 @@ class Intraday_Trade_Action_Space(int, Enum):
 
     @staticmethod
     def convert_to_buy_sell_action_enum(intradayEnum:Intraday_Trade_Action_Space)->Buy_Sell_Action_Enum:
-        if intradayEnum.BUY:
+        if intradayEnum == Intraday_Trade_Action_Space.BUY:
             return Buy_Sell_Action_Enum.BUY
-        elif intradayEnum.SELL:
+        elif intradayEnum == Intraday_Trade_Action_Space.SELL:
             return Buy_Sell_Action_Enum.SELL
-        elif intradayEnum.HOLD:
+        elif intradayEnum == Intraday_Trade_Action_Space.HOLD:
             return Buy_Sell_Action_Enum.HOLD
         else:
             raise NotImplementedError(f"No conversion found for intraday enum: {intradayEnum}")
