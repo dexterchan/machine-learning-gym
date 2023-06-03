@@ -33,7 +33,7 @@ class FeatureRunner():
         self.feature_schema:dict[str, Feature_Generator_Interface] = {}
         for col, _feature_struct in feature_plan.items():
             self.feature_schema[col] = Feature_Generator_Factory.create_generator(self.feature_generator_type, _feature_struct)
-        self.read_pointer:int = 0
+        self._read_pointer:int = 0
         self.feature_plan = feature_plan
         self._feature_cache:LRUCache = LRUCache(maxsize=100)
         pass
@@ -88,7 +88,7 @@ class FeatureRunner():
             pd.DataFrame: _description_
         """
         self._data_source.reset(kwargs=kwargs)
-        self.read_pointer = 0
+        self._read_pointer = 0
         self._feature_cache.clear()
         return self._data_source.get_market_data_candles()
         
@@ -106,19 +106,33 @@ class FeatureRunner():
         features_output:Feature_Output = self.calculate_features()
         num_of_feature, _ = features_output.feature_data.shape
         
-        observation:np.ndarray = features_output.feature_data[self.read_pointer]
-        time_inx = features_output.time_index[self.read_pointer]
+        observation:np.ndarray = features_output.feature_data[self._read_pointer]
+        time_inx = features_output.time_index[self._read_pointer]
         
 
         #check the boundary if it is the end:
-        if self.read_pointer < num_of_feature and increment_step:
-            self.read_pointer+=1
-        if self.read_pointer >= num_of_feature:
+        if self._read_pointer < num_of_feature and increment_step:
+            self._read_pointer+=1
+        if self._read_pointer >= num_of_feature:
             end_of_episode = True
         return observation, time_inx, end_of_episode
     
     def get_current_market_data(self) -> pd.DataFrame:
         return self._data_source.get_market_data_candles()
+    
+    @property
+    def episode_id(self) -> str:
+        return self._data_source.data_id
+    
+    @property
+    def read_pointer(self) -> int:
+        return self._read_pointer
+    
+    @property
+    def max_step(self) -> int:
+        max_step, _ = self.calculate_features().feature_data.shape
+        return max_step
+
 
 
 
@@ -231,30 +245,23 @@ class Intraday_Market_Environment(Interface_Environment):
         logger.debug("MTM history: %s", self._trade_order_agent.mtm_history)
         logger.debug("MTM history length: %s", len(self._trade_order_agent.mtm_history))
         interm_reward = self._trade_order_agent.mtm_history[self.step_counter]
-
-        # #update reward history
-        # inx = self._current_data[self._current_data.index == time_inx]["inx"][0]
-        # mtm_result:Mtm_Result = self.reward_generator.calculate(
-        #     symbol=self.symbol,
-        #     buy_signal_dataframe=self._current_data[:time_inx],
-        #     sell_signal_dataframe=self._current_data[:time_inx],
-        # )
-        # # read pnl_timeline dict and extract "mtm_ratio" by the key: datetime ms timestamp
-        # reward = mtm_result.pnl_timeline["mtm_ratio"][inx]
-        # #reward = rewards[0] if len(rewards) > 0 else 0
         
+        logger.debug("Interm reward: %s", interm_reward)
+
         #increment the step counter
         self.step_counter += 1
+
         return (
             observation,
             interm_reward,
             end_of_episode,
-            False,
-            {"mtm_ratio":(self._trade_order_agent.mtm_history),
-             "time_inx":time_inx,
-             "inx":int(_inx),
-             "long_trade_outstanding":self._trade_order_agent.outstanding_long_position_list,
-             "long_trade_archive":self._trade_order_agent.archive_long_positions_list},
+            end_of_episode,
+            {}
+            # {"mtm_ratio":(self._trade_order_agent.mtm_history),
+            #  "time_inx":time_inx,
+            #  "inx":int(_inx),
+            #  "long_trade_outstanding":self._trade_order_agent.outstanding_long_position_list,
+            #  "long_trade_archive":self._trade_order_agent.archive_long_positions_list},
         )
 
     def close(self):
