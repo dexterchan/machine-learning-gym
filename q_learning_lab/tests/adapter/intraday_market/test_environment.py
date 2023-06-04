@@ -128,7 +128,75 @@ def test_intraday_market_environment(
     logger.info("Trade MTM = %s ", (trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2)
     logger.info("Trade MTM = %s ", trade.calculate_pnl_normalized(price=trade.exit_price,fee_included=True))
     logger.info(intraday_config_dict)
+    assert abs((trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2 - np.sum(intraday_market_train_env._trade_order_agent.mtm_history)) < 0.1
     
-        
+    pass
+
+def test_intraday_market_train_env_with_class_function(get_intraday_config) -> None:
+    intraday_config_dict:dict = get_intraday_config
+
+    train_env, eval_env = Intraday_Market_Environment.create_from_config(
+        raw_data_config=intraday_config_dict["env"],
+        feature_schema_config=intraday_config_dict["features"],
+        pnl_config=intraday_config_dict["pnl_config"],
+    )
+    #Reset intradya 
+    observation, time_inx = train_env.reset()
+    #test the first step
+    assert train_env._feature_runner.read_pointer == 0
+    episode_id1:int = train_env._feature_runner.episode_id
+    assert len(train_env._trade_order_agent.outstanding_long_position_list) == 0
+    assert len(train_env._trade_order_agent.archive_long_positions_list) == 0
+    assert len(train_env._trade_order_agent.mtm_history) == 0
+    assert len(train_env._trade_order_agent.mtm_history) == train_env.step_counter
+    assert train_env.step_counter == 0
+
     
+
+    #Run the first step
+    outstanding_long_positions = train_env._trade_order_agent.outstanding_long_position_list
+    archive_long_positions = train_env._trade_order_agent.archive_long_positions_list
+    states, reward, done, truncated, info = train_env.step(action=Intraday_Trade_Action_Space.BUY)
+    assert states is not None
+    assert states.shape[0] == train_env._observation_space_dim
+    assert len(outstanding_long_positions) == 1
+    assert len(archive_long_positions) == 0
+
+    max_step = train_env._feature_runner.max_step
+    run_continue = True
+
+    states, reward, done, truncated, info = train_env.step(action=Intraday_Trade_Action_Space.SELL)
     
+
+    buy_pos = max_step // 3
+    sell_pos = buy_pos + 1
+
+    while run_continue:
+        _action:Intraday_Trade_Action_Space = Intraday_Trade_Action_Space.HOLD
+        if train_env._feature_runner.read_pointer == buy_pos:
+            _action = Intraday_Trade_Action_Space.BUY
+        elif train_env._feature_runner.read_pointer == sell_pos:
+            _action = Intraday_Trade_Action_Space.SELL
+
+        states, reward, done, truncated, info = train_env.step(action=_action)
+        if done:
+            run_continue = False
+    assert len(train_env._trade_order_agent.outstanding_long_position_list) == 0
+    assert len(train_env._trade_order_agent.archive_long_positions_list) == 2
+    last_trade:ProxyTrade = train_env._trade_order_agent.archive_long_positions_list[-1]
+    assert last_trade.close_reason == Proxy_Trade_Actions.SIGNAL
+    logger.info(last_trade)
+    _mtm = train_env._trade_order_agent.mtm_history
+    _mtm_filtered = [ x for x in _mtm if (x > 0) or (x < 0)]
+    logger.info("MtM sum list =  %s", np.sum(_mtm_filtered))
+    logger.info("MtM sum =  %s", np.sum(train_env._trade_order_agent.mtm_history))
+
+    # add up trade mtm
+    trade_mtm_sum:float = 0 
+    for trade in train_env._trade_order_agent.archive_long_positions_list:
+        #Not working, as calculate_pnl_normalized not consistent with the expected equation
+        #trade_mtm_sum += trade.calculate_pnl_normalized(price=trade.exit_price,fee_included=True)
+        trade_mtm_sum += (trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2
+    assert abs(trade_mtm_sum - np.sum(train_env._trade_order_agent.mtm_history)) < 0.00001
+
+    pass

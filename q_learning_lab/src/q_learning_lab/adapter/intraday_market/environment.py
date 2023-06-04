@@ -1,4 +1,6 @@
+from __future__ import annotations
 from ...adapter import Interface_Environment
+from .training_interface import TrainingDataBundleParameter
 import random
 import numpy as np
 from typing import Any, Union, Optional
@@ -12,7 +14,10 @@ from tradesignal_mtm_runner.trade_reward import TradeBookKeeperAgent
 from tradesignal_mtm_runner.config import PnlCalcConfig
 
 
-from .data_input import Data_Source
+from .data_input import (
+    Data_Source,
+    File_Data_Source_Factory
+)
 
 import pandas as pd
 #Import crypto_feature_precess package here
@@ -21,6 +26,7 @@ from .features.feature_interface import Feature_Generator_Interface
 from crypto_feature_preprocess.port.features import Feature_Output
 from q_learning_lab.utility.logging import get_logger
 from cachetools import LRUCache                 
+
 
 from datetime import datetime
 
@@ -150,6 +156,45 @@ class Intraday_Market_Environment(Interface_Environment):
         self._trade_order_agent:TradeBookKeeperAgent = None
         self._step_counter:int = 0
         
+    @classmethod
+    def create_from_config(cls, 
+                           raw_data_config:dict, 
+                           feature_schema_config:dict,
+                           pnl_config:dict,
+                           ) -> tuple[Intraday_Market_Environment, Intraday_Market_Environment]:
+        """
+        Create the environment from TrainingDataBundleParameter config dictionary
+
+        Args:
+            raw_data_config (dict): TrainingDataBundleParameter config dictionary
+            feature_schema_config (dict): feature schema config dictionary e.g. RSI_Feature_Interface
+            pnl_config (dict): pnl config dictionary to convert to PnlCalcConfig
+
+        Returns:
+            tuple[Intraday_Market_Environment, Intraday_Market_Environment]: training and evaluation environment
+
+        """
+        bundle_params = TrainingDataBundleParameter(**raw_data_config)
+        
+        train_data_source, eval_data_source = File_Data_Source_Factory.prepare_training_eval_data_source(
+            bundle_para=bundle_params
+        )
+
+        def __prepare_env(my_data_source:Data_Source) -> Intraday_Market_Environment:
+            _data_source = my_data_source
+            _feature_runner_map:dict[str, FeatureRunner] = {
+                g_type: FeatureRunner(
+                    data_source=_data_source,
+                    feature_generator_type=g_type,
+                    feature_plan=g_params)
+                for g_type, g_params in feature_schema_config.items()
+            }
+            _intraday_market_train_env: Intraday_Market_Environment = Intraday_Market_Environment()
+            for _, item in _feature_runner_map.items():
+                _intraday_market_train_env.register_feature_runner(item)
+            _intraday_market_train_env.register_pnl_calc_config(pnl_config)
+            return _intraday_market_train_env
+        return __prepare_env(train_data_source), __prepare_env(eval_data_source)
 
     def register_feature_runner(self, feature_runner:FeatureRunner):
         self._feature_runner = feature_runner    
