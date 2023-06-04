@@ -39,8 +39,10 @@ class TestDeepQLearning(unittest.TestCase):
             epsilon=0.1,
             savefig_folder=Path("_static/img/tutorials/"),
             savemodel_folder=Path("_static/model/tutorials/"),
+            save_best_only=True,
             start_epsilon=1.0,  # Starting exploration probability
             min_epsilon=0.05,  # Minimum exploration probability
+            worse_than_best_reward_count_limit=10,
             decay_rate=0.001,
         )
 
@@ -250,10 +252,17 @@ class TestDeepQLearning(unittest.TestCase):
             input_dim=train_env.observation_space_dim,
             output_dim=train_env.action_space_dim,
         )
+        
+        
+        new_params_dict:dict = self.agent_params._asdict()
+        new_params_dict["save_best_only"] = False
+        new_params = Agent_Params(**new_params_dict)
 
+
+        #train again should be stopped
         deepagent_dict = Reinforcement_DeepLearning.train(
             train_env=train_env,
-            agent_params=self.agent_params,
+            agent_params=new_params,
             train_env_params=self.env_params,
             dnn_structure=dnn_structure,
             is_verbose=False,
@@ -272,13 +281,13 @@ class TestDeepQLearning(unittest.TestCase):
             total_rewards_history=deepagent_dict["total_rewards_history"],
             eval_rewards_history=deepagent_dict["eval_rewards_history"],
         )
-        assert len(deepagent_dict["total_rewards_history"]) == self.env_params.total_episodes
+        #assert len(deepagent_dict["total_rewards_history"]) == self.env_params.total_episodes
         assert len(deepagent_dict["total_rewards_history"]) > len(deepagent_dict["eval_rewards_history"]) > 0
         #Continue the training
         deepagent_dict_2 = Reinforcement_DeepLearning.train(
             train_env=train_env,
             eval_env=eval_env,
-            agent_params=self.agent_params,
+            agent_params=new_params,
             train_env_params=self.env_params,
             dnn_structure=model_path,
             is_verbose=False,

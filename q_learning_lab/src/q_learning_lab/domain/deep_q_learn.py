@@ -365,16 +365,23 @@ class Reinforcement_DeepLearning:
         learning_rate = agent_params.learning_rate
         discount_factor = agent_params.gamma
 
+        #Support early dropout by saving best model
+        save_best_only:bool = agent_params.save_best_only
+        worse_than_best_reward_count_limit:int = agent_params.worse_than_best_reward_count_limit
+
         episode:int = 1
         total_training_rewards_history = []
         eval_rewards_history = []
         
         if isinstance(dnn_structure, str):
-            # Overwriting episode and epsilon here after loading model
+            # Overwriting episode and epsilon here after loading mode
+            #Load the model from a file directory in dnn_structure
+            
             logger.info(f"Load existing {model_name} model from {dnn_structure}")
             main, _episode, _epsilon, _reward_history, _eval_history = Reinforcement_DeepLearning._load_existing_agent(
                 model_path=dnn_structure
             )
+
             target, _, _, _ ,_ = Reinforcement_DeepLearning._load_existing_agent(
                 model_path=dnn_structure
             )
@@ -411,7 +418,7 @@ class Reinforcement_DeepLearning:
 
         total_episodes = train_env_params.total_episodes
         max_steps_allowed = train_env_params.n_max_steps
-
+        best_reward:float = -float('inf')
         
         for episode in range(episode, episode + total_episodes):
             total_training_rewards: float = 0
@@ -485,6 +492,7 @@ class Reinforcement_DeepLearning:
                 -decay * episode
             )
             total_training_rewards_history.append(total_training_rewards)
+            # Save the model every n episodes
             if episode % Reinforcement_DeepLearning.SAVE_AGENT_EVERY_N_EPISODE == 0:
                 
                 #Do the evaluation
@@ -509,6 +517,27 @@ class Reinforcement_DeepLearning:
                     total_rewards_history=total_training_rewards_history,
                     eval_rewards_history=eval_rewards_history
                 )
+
+            #4. check best reward
+            if save_best_only:
+                if best_reward < total_training_rewards:
+                    best_reward = total_training_rewards
+                    worse_than_best_reward_count = 0
+                    #update the best reward model
+                    main.save_agent(
+                        path=f"{model_path}_best",
+                        episode=episode,
+                        epsilon=epsilon,
+                        total_rewards_history=total_training_rewards_history,
+                        eval_rewards_history=eval_rewards_history
+                    )
+                else:
+                    if (worse_than_best_reward_count < worse_than_best_reward_count_limit):
+                        worse_than_best_reward_count += 1
+                    else:
+                        logger.info(f"Reach worse_than_best_reward_count_limit:{worse_than_best_reward_count_limit}")
+                        break
+            pass
             
         return {
                 "main": main, 

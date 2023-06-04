@@ -26,17 +26,17 @@
                     "feature_name": "SMA Cross indicator",
                     "feature_type": "SMA_CROSS",
                     "feature_params": {
+                        "dimension": 5,
                         "sma_window_1": 10,
-                        "sma_window_2": 50,
-                        "dimension": 5
+                        "sma_window_2": 50
                     }
                 },
                 {
                     "feature_name": "RSI indicator",
                     "feature_type": "RSI",
                     "feature_params": {
-                        "rsi_window": 14,
-                        "dimension": 5
+                        "dimension": 5,
+                        "rsi_window": 14
                     }
                 }
             ],
@@ -60,7 +60,8 @@
         "savemodel_folder": "_static/model/test/",
         "start_epsilon": 1.0,
         "min_epsilon": 0.05,
-        "decay_rate": 0.001
+        "decay_rate": 0.001,
+        "save_best_only": true
     },
     "pnl_config": {
         "roi": {
@@ -74,5 +75,21 @@
         "enable_short_position": false,
         "max_position_per_symbol": 1,
         "fee_rate": 0.1
+    },
+    "model_param": {
+        "meta": {
+            "name": "simple_dnn",
+            "type": "DNN"
+        },
+        "data": {
+            "input_feacture_dim": 30,
+            "first_layer_struct": { "units": 30, "activation": "relu" },
+            "mid_layers_struct": [
+                { "units": 30, "activation": "relu" },
+                { "units": 20, "activation": "relu" },
+                { "units": 10, "activation": "relu" }
+            ],
+            "output_layer_struct": { "units": 3, "activation": "linear" }
+        }
     }
 }
