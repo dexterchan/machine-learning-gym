@@ -4,8 +4,9 @@ from q_learning_lab.domain.models.agent_params import Agent_Params
 from q_learning_lab.domain.models.intraday_market_models import DNN_Params, EnvParams
 from q_learning_lab.domain.deep_q_learn import Reinforcement_DeepLearning
 import pytest
+import os
 
-@pytest.mark.skip(reason="Not implemented")
+@pytest.mark.skipif("INTRADAY_TRAIN" not in os.environ,reason="not yet ready")
 def test_training(get_intraday_config):
     intraday_config_dict:dict = get_intraday_config
     # 1. Create training and evaluation environments
@@ -29,7 +30,7 @@ def test_training(get_intraday_config):
     model_name = intraday_config_dict["model_param"]["meta"]["name"]
     deepagent_dict = Reinforcement_DeepLearning.train(
             train_env=train_env,
-            agent_params=dnn_params,
+            agent_params=agent_params,
             train_env_params=train_env_params,
             dnn_structure=dnn_params.get_dnn_structure(),
             is_verbose=False,
