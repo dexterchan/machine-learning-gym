@@ -429,7 +429,7 @@ class Reinforcement_DeepLearning:
 
             while not terminated:
                 step_count += 1
-                if step_count >= max_steps_allowed:
+                if max_steps_allowed!=0 and step_count >= max_steps_allowed:
                     logger.info(f"Reach max step allowed:{step_count}")
                     break
                 steps_to_update_target_model += 1

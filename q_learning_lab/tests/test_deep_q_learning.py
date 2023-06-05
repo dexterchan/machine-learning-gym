@@ -42,7 +42,7 @@ class TestDeepQLearning(unittest.TestCase):
             save_best_only=True,
             start_epsilon=1.0,  # Starting exploration probability
             min_epsilon=0.05,  # Minimum exploration probability
-            worse_than_best_reward_count_limit=10,
+            worse_than_best_reward_count_limit=30,
             decay_rate=0.001,
         )
 
