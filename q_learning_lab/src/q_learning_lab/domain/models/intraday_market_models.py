@@ -46,7 +46,7 @@ class Intraday_Trade_Action_Space(int, Enum):
             raise NotImplementedError(f"No conversion found for action enum: {actionEnum}")
 
 class DNN_Params(NamedTuple):
-    input_feacture_dim: tuple #e.g. (16,)
+    input_feacture_dim: int #e.g. 16
     first_layer_struct:dict = {"units": 16*6, "activation": "relu"}
     mid_layers_struct:list[dict] = [
         {"units": 16*2, "activation": "relu"},
@@ -68,7 +68,7 @@ class DNN_Params(NamedTuple):
             initializer=init,
             input_layer=InputLayer(
                 units=self.first_layer_struct["units"],
-                input_shape=self.input_feacture_dim,
+                input_shape=(self.input_feacture_dim,),
                 activation=self.first_layer_struct["activation"],
             ),
             process_layers=[

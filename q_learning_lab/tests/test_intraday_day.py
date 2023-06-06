@@ -11,7 +11,7 @@ from  q_learning_lab.domain.deep_q_learn import (
 def test_load_dnn_struct() -> None:
     input_dim:int = 16
     dnn_params:DNN_Params = DNN_Params(
-        input_feacture_dim=(input_dim,),
+        input_feacture_dim=input_dim,
         first_layer_struct={"units": input_dim*6, "activation": "relu"},
         mid_layers_struct=[
             {"units": input_dim*2, "activation": "relu"},

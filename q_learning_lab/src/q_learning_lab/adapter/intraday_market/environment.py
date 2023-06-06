@@ -261,7 +261,8 @@ class Intraday_Market_Environment(Interface_Environment):
             raise ValueError("trade order generator is not registered, please register pnl_calc_config and reset the environment")
         #Check if action is valid
         if not isinstance(action, Intraday_Trade_Action_Space):
-            raise ValueError("Action is not valid")
+            action = Intraday_Trade_Action_Space(action)
+            #raise ValueError(f"Action: {action} is not valid")
 
         #Convert Intraday_Trade_Action_Space to Buy_Sell_Action_Enum of tradesignal runner
         buy_sell_action_space:Buy_Sell_Action_Enum = Intraday_Trade_Action_Space.convert_to_buy_sell_action_enum(action)
