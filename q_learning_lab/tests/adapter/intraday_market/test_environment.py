@@ -140,7 +140,7 @@ def test_intraday_market_train_env_with_class_function(get_intraday_config) -> N
         feature_schema_config=intraday_config_dict["features"],
         pnl_config=intraday_config_dict["pnl_config"],
     )
-    #Reset intradya 
+    #Reset intraday 
     observation, time_inx = train_env.reset()
     #test the first step
     assert train_env._feature_runner.read_pointer == 0

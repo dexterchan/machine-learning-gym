@@ -96,11 +96,14 @@ create_container_image:
 create_container_image_slim:
 	sh scripts/container/build_image_slim.sh
 
-training: 
-	python3 -m q_learning_lab -b cartpole-v1 -c scripts/config/cart_pole_v1.json
 
-training_long: 
-	python3 -m q_learning_lab -b cartpole-v1 -c scripts/config/cart_pole_v1_long.json
+training: export PYTHONPATH=$(shell pwd)/src
+training: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
+training: 
+	python3 -m q_learning_lab -b intraday-market-v0 -c scripts/config/intraday_config.json
+
+# training_long: 
+# 	python3 -m q_learning_lab -b cartpole-v1 -c scripts/config/cart_pole_v1_long.json
 
 dummy_run: 
 	python3 -m q_learning_lab -b dummy -c scripts/config/cart_pole_v1_long.json

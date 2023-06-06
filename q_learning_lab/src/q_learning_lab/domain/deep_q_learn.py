@@ -321,8 +321,8 @@ class Reinforcement_DeepLearning:
         agent_params: NamedTuple,
         train_env_params: NamedTuple,
         dnn_structure: SequentialStructure|str,
+        model_name: str,
         is_verbose: bool = False,
-        model_name: str = "CartPole-v1",
         eval_env: Execute_Environment = None
     ) -> dict[str, DeepAgent]:
         """ training the model in batch
@@ -332,8 +332,9 @@ class Reinforcement_DeepLearning:
             agent_params (NamedTuple): agent parameters
             train_env_params (NamedTuple): environment parameters
             dnn_structure (SequentialStructure|str): sequential structure or model path
+            model_name (str, optional): model name of the environment.
             is_verbose (bool, optional): render the environment during training. Defaults to False.
-            model_name (str, optional): model name of the environment. Defaults to "CartPole-v1".
+            
 
         Returns:
             dict[str,DeepAgent]: dictionary of agents -> {"main": main, "episode": episode, "epsilon": epsilon, "eval_rewards_history": eval_rewards_history}

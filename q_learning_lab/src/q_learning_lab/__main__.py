@@ -12,8 +12,8 @@ def execute_lab():
     """Console script for q_learning_lab."""
     parser = argparse.ArgumentParser()
     # Add parser "config" file name here
-    parser.add_argument("-c", "--config", default="scripts/config/cart_pole_v1.json")
-    parser.add_argument("-b", "--lab-name", help="lab name", default="CartPole-v1")
+    parser.add_argument("-c", "--config", default="scripts/config/intraday_config.json")
+    parser.add_argument("-b", "--lab-name", help="lab name", default="intraday-market-v0")
     args = parser.parse_args()
     # Load the json file into config dict
     with open(args.config) as f:
