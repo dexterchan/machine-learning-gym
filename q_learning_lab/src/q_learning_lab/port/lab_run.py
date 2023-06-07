@@ -71,7 +71,7 @@ def create_train_materials(lab_name:str, lab_config: dict) -> tuple:
     else:
         raise NotImplementedError(f"lab_name: {lab_name} not implemented")  
 
-def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool) -> None:
+def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, force_new:bool) -> None:
     from q_learning_lab.adapter.intraday_market.environment import Intraday_Market_Environment
     from q_learning_lab.domain.models.intraday_market_models import DNN_Params, EnvParams
     intraday_config_dict:dict = lab_config
@@ -91,6 +91,14 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool) -> N
 
     #4. create DNN structure - DNN_Params
     dnn_params = DNN_Params(**intraday_config_dict["model_param"]["data"])
+    if not force_new:
+        #Construct the model path
+        model_path = os.path.join(agent_params.savemodel_folder, "training", f"{lab_name}-latest")
+        #Check if the model path exists
+        if os.path.exists(f"{model_path}.json"):
+            logger.info(f"{model_path} can be reached, fetch latest model")
+            dnn_params = model_path
+
     
     #5. Use Reinforcement_DeepLearning.train to train the agent
     model_name = intraday_config_dict["model_param"]["meta"]["name"]

@@ -58,8 +58,8 @@
         }
     },
     "agent": {
-        "learning_rate": 0.001,
-        "gamma": 0.618,
+        "learning_rate": 0.01,
+        "gamma": 0.9,
         "epsilon": 0.1,
         "savefig_folder": "_static/img/test/",
         "savemodel_folder": "_static/model/test/",

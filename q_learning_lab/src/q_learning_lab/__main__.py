@@ -14,15 +14,18 @@ def execute_lab():
     # Add parser "config" file name here
     parser.add_argument("-c", "--config", default="scripts/config/intraday_config.json")
     parser.add_argument("-b", "--lab-name", help="lab name", default="intraday-market-v0")
+    parser.add_argument("-n",  "--force-new", help="force new run", default=False, type=bool)
     args = parser.parse_args()
     # Load the json file into config dict
     with open(args.config) as f:
         config = json.load(f)
     # Call the execute_lab function
 
+    force_new:bool = args.force_new
+
     from .port.lab_run import execute_lab_training
 
-    execute_lab_training(lab_name=args.lab_name, lab_config=config, is_verbose=False)
+    execute_lab_training(lab_name=args.lab_name, lab_config=config, is_verbose=False, force_new=force_new)
 
     return 0
 
