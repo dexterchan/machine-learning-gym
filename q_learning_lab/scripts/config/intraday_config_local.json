@@ -7,7 +7,7 @@
     "data_config": {
         "exchange": "kraken",
         "symbol": "ETHUSD",
-        "input_data_dir": "./../../crypto_market_data/data",
+        "input_data_dir": "./data",
         "start_date_ymd": "20230301",
         "end_date_ymd": "20230401",
         "data_length_days": 10,

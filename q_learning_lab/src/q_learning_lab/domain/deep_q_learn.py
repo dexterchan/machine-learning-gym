@@ -278,7 +278,7 @@ class DeepAgent:
 
 
 class Reinforcement_DeepLearning:
-    SAVE_AGENT_EVERY_N_EPISODE:int = 50
+    SAVE_AGENT_EVERY_N_EPISODE:int = 10
 
     @staticmethod
     def _create_new_deep_agent(
@@ -513,6 +513,13 @@ class Reinforcement_DeepLearning:
                     )
                 main.save_agent(
                     path=f"{model_path}_{episode}",
+                    episode=episode,
+                    epsilon=epsilon,
+                    total_rewards_history=total_training_rewards_history,
+                    eval_rewards_history=eval_rewards_history
+                )
+                main.save_agent(
+                    path=f"{model_path}_latest",
                     episode=episode,
                     epsilon=epsilon,
                     total_rewards_history=total_training_rewards_history,
