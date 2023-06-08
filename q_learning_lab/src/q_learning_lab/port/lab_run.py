@@ -71,7 +71,7 @@ def create_train_materials(lab_name:str, lab_config: dict) -> tuple:
     else:
         raise NotImplementedError(f"lab_name: {lab_name} not implemented")  
 
-def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, force_new:bool, episode_batch_size:int) -> None:
+def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, force_new:bool) -> None:
     """
         Execute the lab training.
         Args:
@@ -79,7 +79,6 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
             lab_config: The lab configuration dictionary
             is_verbose: Whether to print the training progress.
             force_new: Whether to force a new training.
-            episode_batch_size: The number of episodes to train in a batch.
         
         Returns:
             None
