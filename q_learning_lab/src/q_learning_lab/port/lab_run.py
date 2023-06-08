@@ -71,7 +71,19 @@ def create_train_materials(lab_name:str, lab_config: dict) -> tuple:
     else:
         raise NotImplementedError(f"lab_name: {lab_name} not implemented")  
 
-def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, force_new:bool) -> None:
+def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, force_new:bool, episode_batch_size:int) -> None:
+    """
+        Execute the lab training.
+        Args:
+            lab_name: The name of the lab.
+            lab_config: The lab configuration dictionary
+            is_verbose: Whether to print the training progress.
+            force_new: Whether to force a new training.
+            episode_batch_size: The number of episodes to train in a batch.
+        
+        Returns:
+            None
+    """
     from q_learning_lab.adapter.intraday_market.environment import Intraday_Market_Environment
     from q_learning_lab.domain.models.intraday_market_models import DNN_Params, EnvParams
     intraday_config_dict:dict = lab_config
@@ -89,10 +101,24 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
     agent_params = Agent_Params(**intraday_config_dict["agent"])
     train_env_params = EnvParams(**intraday_config_dict["env"])
 
-    #4. create DNN structure - DNN_Params
+    #4. estimate the number of episodes batch required
+    n_episodes = math.ceil(int(train_env_params.total_episodes) / int(train_env_params.episode_batch))
+
+    # For step 5 to step 6,
+    # we fork the child process to execute the training
+    # each fork process runs a batch of episodes
+    # the parent process will wait for the child process to finish
+    # then fork the next child process to execute the next batch of episodes
+    # until all episodes are executed
+    # the parent process will then exit
+    # the child process will exit after the training is finished
+
+
+    #fork start here
+    #5. create DNN structure - DNN_Params
     model_struct = DNN_Params(**intraday_config_dict["model_param"]["data"]).get_dnn_structure()
     model_name = intraday_config_dict["model_param"]["meta"]["name"]
-
+    
     if not force_new:
         #Construct the model path is loadable
         model_path = os.path.join(agent_params.savemodel_folder, "training", f"{model_name}_latest")
@@ -101,8 +127,8 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
             logger.info(f"Ready to continue the training from {model_path}")
             model_struct = model_path
     
-    #5. Use Reinforcement_DeepLearning.train to train the agent
-    deepagent_dict = Reinforcement_DeepLearning.train(
+    #6. Use Reinforcement_DeepLearning.train to train the agent
+    _ = Reinforcement_DeepLearning.train(
             train_env=train_env,
             agent_params=agent_params,
             train_env_params=train_env_params,
@@ -111,6 +137,10 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
             model_name=model_name,
             eval_env=eval_env
         )
+    #fork end here
+
+    #wait until all child process finish
+    
     pass
 
 
