@@ -130,6 +130,31 @@ class DeepAgent:
         instance._model = _sequential_model
         return instance, model_dict
 
+    @classmethod
+    def check_agent_loadable_from_path(cls, path:str) -> bool:
+        """
+        Check if the agent loadable from path
+        it will check two file paths:
+        - path + ".tfm" : tensorflow model path
+        - path + ".json" : agent parameters in a json file
+        Args:
+            path (str): file path
+        
+        Returns:
+            bool: boolean - true likely loadable; false not loadable
+        """
+        tensorflow_model_path = path + ".tfm"
+        agent_path = path + ".json"
+
+        if not os.path.exists(tensorflow_model_path) or not os.path.isdir(tensorflow_model_path):
+            logger.error(f"Tensorflow model path {tensorflow_model_path} not found")
+            return False
+        
+        if not os.path.exists(agent_path) or not os.path.isfile(agent_path):
+            logger.error(f"Tensorflow model training meta data not exists: {agent_path}")
+            return False
+        return True
+
     def _create_sequential_model(
         self, structure: SequentialStructure
     ) -> keras.Sequential:
@@ -281,12 +306,12 @@ class Reinforcement_DeepLearning:
     SAVE_AGENT_EVERY_N_EPISODE:int = 10
 
     @staticmethod
-    def _create_new_deep_agent(
+    def create_new_deep_agent(
         dnn_structure:SequentialStructure, 
         learning_rate:float, 
         discount_factor:float, 
         is_verbose:bool=False) -> DeepAgent:
-        """ Create new sequential structure
+        """ Create new sequential structur
         """
         return  DeepAgent(
             structure=dnn_structure,
@@ -296,7 +321,7 @@ class Reinforcement_DeepLearning:
         )
     
     @staticmethod
-    def _load_existing_agent(
+    def load_existing_agent(
         model_path:str
     ) -> tuple[DeepAgent, int, float]:
         """ Load existing agent
@@ -314,6 +339,17 @@ class Reinforcement_DeepLearning:
         last_eval_rewards_history = last_run_para["eval_rewards_history"]
 
         return cloned_agent, episode, epsilon, total_rewards_history, last_eval_rewards_history
+
+    @staticmethod
+    def check_agent_reloadable(model_path:str) -> bool:
+        """ Check agent loadable in the path
+        Args:
+            model_path (str): model path
+        
+        Returns:
+            boolean: True -> probably loadable; False -> NOT loadable
+        """
+        return DeepAgent.check_agent_loadable_from_path(path=model_path)
 
     @staticmethod
     def train(
@@ -379,11 +415,11 @@ class Reinforcement_DeepLearning:
             #Load the model from a file directory in dnn_structure
             
             logger.info(f"Load existing {model_name} model from {dnn_structure}")
-            main, _episode, _epsilon, _reward_history, _eval_history = Reinforcement_DeepLearning._load_existing_agent(
+            main, _episode, _epsilon, _reward_history, _eval_history = Reinforcement_DeepLearning.load_existing_agent(
                 model_path=dnn_structure
             )
 
-            target, _, _, _ ,_ = Reinforcement_DeepLearning._load_existing_agent(
+            target, _, _, _ ,_ = Reinforcement_DeepLearning.load_existing_agent(
                 model_path=dnn_structure
             )
             logger.info(
@@ -398,14 +434,14 @@ class Reinforcement_DeepLearning:
             eval_rewards_history.extend(_eval_history)
         else:
             # 1a. initialize the main model, (updated every "every_n_steps_to_train_main_model" steps)
-            main = Reinforcement_DeepLearning._create_new_deep_agent(
+            main = Reinforcement_DeepLearning.create_new_deep_agent(
                 dnn_structure=dnn_structure,
                 learning_rate=learning_rate,
                 discount_factor=discount_factor,
                 is_verbose=is_verbose,
             )
             # 1b. initialize the target model, (updated every "every_m_steps_to_copy_main_weights_to_target_model" steps)
-            target = Reinforcement_DeepLearning._create_new_deep_agent(
+            target = Reinforcement_DeepLearning.create_new_deep_agent(
                 dnn_structure=dnn_structure,
                 learning_rate=learning_rate,
                 discount_factor=discount_factor,

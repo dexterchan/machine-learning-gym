@@ -90,23 +90,23 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
     train_env_params = EnvParams(**intraday_config_dict["env"])
 
     #4. create DNN structure - DNN_Params
-    dnn_params = DNN_Params(**intraday_config_dict["model_param"]["data"])
-    if not force_new:
-        #Construct the model path
-        model_path = os.path.join(agent_params.savemodel_folder, "training", f"{lab_name}-latest")
-        #Check if the model path exists
-        if os.path.exists(f"{model_path}.json"):
-            logger.info(f"{model_path} can be reached, fetch latest model")
-            dnn_params = model_path
+    model_struct = DNN_Params(**intraday_config_dict["model_param"]["data"]).get_dnn_structure()
+    model_name = intraday_config_dict["model_param"]["meta"]["name"]
 
+    if not force_new:
+        #Construct the model path is loadable
+        model_path = os.path.join(agent_params.savemodel_folder, "training", f"{model_name}_latest")
+        #Check if the model path exists
+        if Reinforcement_DeepLearning.check_agent_reloadable(model_path=model_path):
+            logger.info(f"Ready to continue the training from {model_path}")
+            model_struct = model_path
     
     #5. Use Reinforcement_DeepLearning.train to train the agent
-    model_name = intraday_config_dict["model_param"]["meta"]["name"]
     deepagent_dict = Reinforcement_DeepLearning.train(
             train_env=train_env,
             agent_params=agent_params,
             train_env_params=train_env_params,
-            dnn_structure=dnn_params.get_dnn_structure(),
+            dnn_structure=model_struct,
             is_verbose=False,
             model_name=model_name,
             eval_env=eval_env
