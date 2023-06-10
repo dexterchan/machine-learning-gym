@@ -8,6 +8,9 @@ from ..utility.logging import get_logger
 from typing import Any
 import os
 import math
+
+from ..utility.process_runner import ForkProcessRunner
+
 logger = get_logger(__name__)
 
 
@@ -112,32 +115,34 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
     # the parent process will then exit
     # the child process will exit after the training is finished
 
-
     #fork start here
-    #5. create DNN structure - DNN_Params
-    model_struct = DNN_Params(**intraday_config_dict["model_param"]["data"]).get_dnn_structure()
-    model_name = intraday_config_dict["model_param"]["meta"]["name"]
-    
-    if not force_new:
-        #Construct the model path is loadable
-        model_path = os.path.join(agent_params.savemodel_folder, "training", f"{model_name}_latest")
-        #Check if the model path exists
-        if Reinforcement_DeepLearning.check_agent_reloadable(model_path=model_path):
-            logger.info(f"Ready to continue the training from {model_path}")
-            model_struct = model_path
-    
-    #6. Use Reinforcement_DeepLearning.train to train the agent
-    _ = Reinforcement_DeepLearning.train(
-            train_env=train_env,
-            agent_params=agent_params,
-            train_env_params=train_env_params,
-            dnn_structure=model_struct,
-            is_verbose=False,
-            model_name=model_name,
-            eval_env=eval_env
-        )
+    def _fork_training_process()->None:
+        #5. create DNN structure - DNN_Params
+        model_struct = DNN_Params(**intraday_config_dict["model_param"]["data"]).get_dnn_structure()
+        model_name = intraday_config_dict["model_param"]["meta"]["name"]
+        
+        if not force_new:
+            #Construct the model path is loadable
+            model_path = os.path.join(agent_params.savemodel_folder, "training", f"{model_name}_latest")
+            #Check if the model path exists
+            if Reinforcement_DeepLearning.check_agent_reloadable(model_path=model_path):
+                logger.info(f"Ready to continue the training from {model_path}")
+                model_struct = model_path
+        
+        #6. Use Reinforcement_DeepLearning.train to train the agent
+        _ = Reinforcement_DeepLearning.train(
+                train_env=train_env,
+                agent_params=agent_params,
+                train_env_params=train_env_params,
+                dnn_structure=model_struct,
+                is_verbose=False,
+                model_name=model_name,
+                eval_env=eval_env
+            )
     #fork end here
-
+    fork_process_runner = ForkProcessRunner()
+    for i in range(n_episodes):
+        fork_process_runner.run(_fork_training_process)
     #wait until all child process finish
     
     pass
