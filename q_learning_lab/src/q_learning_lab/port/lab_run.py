@@ -104,7 +104,7 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
     train_env_params = EnvParams(**intraday_config_dict["env"])
 
     #4. estimate the number of episodes batch required
-    n_episodes = math.ceil(int(train_env_params.total_episodes) / int(train_env_params.episode_batch))
+    n_episode_batches = math.ceil(int(train_env_params.total_episodes) / int(train_env_params.episode_batch))
 
     # For step 5 to step 6,
     # we fork the child process to execute the training
@@ -142,7 +142,7 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
         pass
     #fork end here
     fork_process_runner = ForkProcessRunner()
-    for i in range(n_episodes):
+    for i in range(n_episode_batches):
         fork_process_runner.fork_run(_fork_training_process)
     #wait until all child process finish
     
