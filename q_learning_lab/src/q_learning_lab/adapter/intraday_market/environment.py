@@ -139,6 +139,9 @@ class FeatureRunner():
         max_step, _ = self.calculate_features().feature_data.shape
         return max_step
 
+    @property
+    def data_dimension(self)->tuple[int,int]:
+        return self._data_source.get_data_dimension()
 
 
 
@@ -370,3 +373,11 @@ class Intraday_Market_Environment(Interface_Environment):
             value (int): value to be set
         """
         self._step_counter = value
+
+    def get_data_dimension(self) -> tuple[int,int]:
+        """Get data dimension
+
+        Returns:
+            tuple[int,int]: data dimension
+        """
+        return self._feature_runner.data_dimension

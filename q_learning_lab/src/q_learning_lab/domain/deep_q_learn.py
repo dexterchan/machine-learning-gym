@@ -12,6 +12,8 @@ from collections import deque
 import numpy as np
 import json
 import os
+from .models.env_params import BaseEnv_Params
+from .models.agent_params import Agent_Params
 
 from ..utility.logging import get_logger
 
@@ -271,8 +273,12 @@ class DeepAgent:
 
         state, _ = env.reset()
         total_reward = 0
+        terminated: bool = False
+        step: int = 1
         COMPLETE: bool = False
-        for step in range(1, max_step + 1):
+        logger.info("Start playing with max_step: %s", max_step)
+        while step <= max_step or (not terminated):
+        #for step in range(1, max_step + 1):
             if self.is_verbose:
                 env.render()
                 time.sleep(0.2)
@@ -291,6 +297,7 @@ class DeepAgent:
                 if COMPLETE:
                     logger.info("Finish with max step")
                 break
+            step += 1
             pass
         logger.info(
             "Finished playing with total reward: %s Finish state: %s , Complete: %s, step: %s",
@@ -303,7 +310,7 @@ class DeepAgent:
 
 
 class Reinforcement_DeepLearning:
-    SAVE_AGENT_EVERY_N_EPISODE:int = 10
+    
 
     @staticmethod
     def create_new_deep_agent(
@@ -354,8 +361,8 @@ class Reinforcement_DeepLearning:
     @staticmethod
     def train(
         train_env: Execute_Environment,
-        agent_params: NamedTuple,
-        train_env_params: NamedTuple,
+        agent_params: Agent_Params,
+        train_env_params: BaseEnv_Params,
         dnn_structure: SequentialStructure|str,
         model_name: str,
         is_verbose: bool = False,
@@ -365,8 +372,8 @@ class Reinforcement_DeepLearning:
 
         Args:
             train_env (Execute_Environment): execution environment with training data
-            agent_params (NamedTuple): agent parameters
-            train_env_params (NamedTuple): environment parameters
+            agent_params (Agent_Params): agent parameters
+            train_env_params (BaseEnv_Params): environment parameters
             dnn_structure (SequentialStructure|str): sequential structure or model path
             model_name (str, optional): model name of the environment.
             is_verbose (bool, optional): render the environment during training. Defaults to False.
@@ -458,13 +465,16 @@ class Reinforcement_DeepLearning:
         max_steps_allowed = train_env_params.n_max_steps
         best_reward:float = -float('inf')
         
-        end_iteration:int = min(total_episodes, episode + episode_batch)
-        for episode in range(episode, end_iteration):
+        end_iteration:int = min(total_episodes, episode + episode_batch) if train_env_params.batch_mode else total_episodes
+
+        logger.info(f"Start training {model_name} model iteration {episode} to {end_iteration}")
+
+        for episode in range(episode, end_iteration+1):
             total_training_rewards: float = 0
             step_count:int = 0
             state, _ = train_env.reset()
             terminated: bool = False
-            logger.info(f"Training Episode: {episode}/{total_episodes}")
+            logger.info(f"Batch Training Episode: {episode}/{total_episodes}")
 
             while not terminated:
                 step_count += 1
@@ -532,7 +542,7 @@ class Reinforcement_DeepLearning:
             )
             total_training_rewards_history.append(total_training_rewards)
             # Save the model every n episodes
-            if episode % Reinforcement_DeepLearning.SAVE_AGENT_EVERY_N_EPISODE == 0:
+            if episode % agent_params.save_agent_every_n_episode == 0:
                 
                 #Do the evaluation
                 if eval_env is not None:

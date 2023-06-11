@@ -139,10 +139,11 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
                 model_name=model_name,
                 eval_env=eval_env
             )
+        pass
     #fork end here
     fork_process_runner = ForkProcessRunner()
     for i in range(n_episodes):
-        fork_process_runner.run(_fork_training_process)
+        fork_process_runner.fork_run(_fork_training_process)
     #wait until all child process finish
     
     pass

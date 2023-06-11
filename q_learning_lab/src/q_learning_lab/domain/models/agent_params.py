@@ -17,6 +17,7 @@ class Agent_Params(NamedTuple):
     every_m_steps_to_copy_main_weights_to_target_model: int = (
         100  # Copy weights every m steps
     )
+    save_agent_every_n_episode: int = 10  # Save agent every n episodes
     worse_than_best_reward_count_limit:int = 100
     replay_memory_size: int = 50000  # Maximum size of replay memory
     train_batch_size: int = 64 * 2  # Size of batch taken from replay memory

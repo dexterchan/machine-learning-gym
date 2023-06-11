@@ -37,7 +37,15 @@ class Data_Source(ABC):
             useful when u want to cache feature calculation from the data source
         """
         pass
+    
+    @abstractmethod
+    def get_data_dimension(self) -> tuple[int, int]:
+        pass
 
+    
+    @abstractproperty
+    def all_episode_numbers(self) -> list[int]:
+        pass
     
 
 class Data_Source_Enum(str, ):
@@ -128,6 +136,15 @@ class Historical_File_Access_Data_Source(Data_Source):
         if isinstance(  value, datetime) == False:
             raise ValueError("start_date is not datetime")
         self._end_date = value
+
+
+    def get_data_dimension(self) -> tuple[int, int]:
+        return (self.get_market_data_candles().shape[0], self.get_market_data_candles().shape[1])
+
+    
+    @property
+    def all_episode_numbers(self) -> list[int]:
+        return []
 
 
 

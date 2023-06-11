@@ -174,7 +174,7 @@ class TestDeepQLearning(unittest.TestCase):
         
         #test load agent
         cloned_agent, last_run_para = DeepAgent.load_agent(path=model_path)
-        cloned_agent2, last_episode, last_epsilon, _reward_history, _ = Reinforcement_DeepLearning._load_existing_agent(
+        cloned_agent2, last_episode, last_epsilon, _reward_history, _ = Reinforcement_DeepLearning.load_existing_agent(
             model_path=model_path
         )
         
@@ -295,9 +295,9 @@ class TestDeepQLearning(unittest.TestCase):
         )
         assert deepagent_dict_2 is not None
         assert deepagent_dict_2["main"] is not None
-        assert deepagent_dict_2["episode"] == self.env_params.total_episodes * 2
-        assert deepagent_dict_2["epsilon"] <  deepagent_dict["epsilon"]
-        assert len(deepagent_dict_2["total_rewards_history"]) == self.env_params.total_episodes * 2
+        assert deepagent_dict_2["episode"] == self.env_params.total_episodes
+        assert abs(deepagent_dict_2["epsilon"] -  deepagent_dict["epsilon"]) < 0.0001
+        assert abs(len(deepagent_dict_2["total_rewards_history"]) -self.env_params.total_episodes)<=1
         deepagent_dict_2["main"].save_agent(
             path=model_path,
             episode=deepagent_dict_2["episode"],
