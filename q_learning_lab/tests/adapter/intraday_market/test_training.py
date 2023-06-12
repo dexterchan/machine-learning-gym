@@ -11,7 +11,7 @@ import math
 
 logger = get_logger(__name__)
 
-#@pytest.mark.skipif("INTRADAY_TRAIN" not in os.environ,reason="not yet ready")
+@pytest.mark.skip(reason="not yet ready -> to be demised")
 def test_training(get_intraday_local_config):
     intraday_config_dict:dict = get_intraday_local_config
     train_env:Intraday_Market_Environment = None

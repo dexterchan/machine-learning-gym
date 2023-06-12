@@ -3,12 +3,12 @@
         "total_episodes": 4,
         "n_max_steps": 0,
         "episode_batch": 2,
-        "batch_mode":true
+        "batch_mode": true
     },
     "data_config": {
         "exchange": "kraken",
         "symbol": "ETHUSD",
-        "input_data_dir": "./data",
+        "input_data_dir": "${DATA_DIR}",
         "start_date_ymd": "20220301",
         "end_date_ymd": "20230401",
         "data_length_days": 10,

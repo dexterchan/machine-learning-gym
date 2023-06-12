@@ -2,6 +2,8 @@ from __future__ import annotations
 from ...adapter import Interface_Environment
 from .training_interface import TrainingDataBundleParameter
 import random
+import re
+import os
 import numpy as np
 from typing import Any, Union, Optional
 from enum import Enum
@@ -177,6 +179,20 @@ class Intraday_Market_Environment(Interface_Environment):
             tuple[Intraday_Market_Environment, Intraday_Market_Environment]: training and evaluation environment
 
         """
+        env_var_regex = re.compile(r"\$\{(\w+)\}")
+        #in the raw_data_config dictionary, we may have some env variables
+        #we need to replace them with the actual value from the environment variable
+        for k, v in raw_data_config.items():
+            if isinstance(v, str):
+                match = env_var_regex.match(v)
+                if match:
+                    env_var_name = match.group(1)
+                    env_var_value = os.environ.get(env_var_name)
+                    if env_var_value is None:
+                        raise ValueError(f"Environment variable {env_var_name} is not defined")
+                    raw_data_config[k] = env_var_value
+
+
         bundle_params = TrainingDataBundleParameter(**raw_data_config)
         
         train_data_source, eval_data_source = File_Data_Source_Factory.prepare_training_eval_data_source(
