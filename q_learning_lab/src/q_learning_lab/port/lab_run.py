@@ -74,7 +74,7 @@ def create_train_materials(lab_name:str, lab_config: dict) -> tuple:
     else:
         raise NotImplementedError(f"lab_name: {lab_name} not implemented")  
 
-def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, force_new:bool) -> None:
+def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, force_new:bool, run_id:str) -> None:
     """
         Execute the lab training.
         Args:
@@ -82,6 +82,7 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
             lab_config: The lab configuration dictionary
             is_verbose: Whether to print the training progress.
             force_new: Whether to force a new training.
+            run_id: "run id" of this trianing
         
         Returns:
             None
@@ -123,7 +124,7 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
         
         if not force_new:
             #Construct the model path is loadable
-            model_path = os.path.join(agent_params.savemodel_folder, "training", f"{model_name}_latest")
+            model_path = os.path.join(agent_params.savemodel_folder, run_id, f"{model_name}_latest")
             #Check if the model path exists
             if Reinforcement_DeepLearning.check_agent_reloadable(model_path=model_path):
                 logger.info(f"Ready to continue the training from {model_path}")
@@ -137,7 +138,8 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
                 dnn_structure=model_struct,
                 is_verbose=False,
                 model_name=model_name,
-                eval_env=eval_env
+                eval_env=eval_env,
+                run_id=run_id
             )
         pass
     #fork end here
@@ -178,6 +180,7 @@ def execute_lab_training_old(lab_name: str, lab_config: dict, is_verbose: bool) 
             dnn_structure=dnn_structure,
             is_verbose=is_verbose,
             model_name=lab_name,
+            run_id="training"
         )
         deepagent_dict["main"].save_agent(
             path=model_path,

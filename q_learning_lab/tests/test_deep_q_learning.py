@@ -267,7 +267,8 @@ class TestDeepQLearning(unittest.TestCase):
             dnn_structure=dnn_structure,
             is_verbose=False,
             model_name=model_name,
-            eval_env=eval_env
+            eval_env=eval_env,
+            run_id="training"
         )
 
         assert deepagent_dict is not None
@@ -292,6 +293,7 @@ class TestDeepQLearning(unittest.TestCase):
             dnn_structure=model_path,
             is_verbose=False,
             model_name=model_name,
+            run_id="training"
         )
         assert deepagent_dict_2 is not None
         assert deepagent_dict_2["main"] is not None

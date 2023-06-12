@@ -100,12 +100,12 @@ create_container_image_slim:
 training: export PYTHONPATH=$(shell pwd)/src
 training: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
 training: 
-	python3 -m q_learning_lab -b intraday-market-v0 -c scripts/config/intraday_config.json
+	python3 -m q_learning_lab -b intraday-market-v0 -c scripts/config/intraday_config.json -i local_intraday
 
 training_local: export PYTHONPATH=$(shell pwd)/src
 training_local: export DATA_DIR=$(shell pwd)/data
 training_local: 
-	python3 -m q_learning_lab -b intraday-market-v0 -c scripts/config/intraday_config_local.json
+	python3 -m q_learning_lab -b intraday-market-v0 -c scripts/config/intraday_config_local.json -i local_intraday
 
 # training_long: 
 # 	python3 -m q_learning_lab -b cartpole-v1 -c scripts/config/cart_pole_v1_long.json

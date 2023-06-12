@@ -365,6 +365,7 @@ class Reinforcement_DeepLearning:
         train_env_params: BaseEnv_Params,
         dnn_structure: SequentialStructure|str,
         model_name: str,
+        run_id:str,
         is_verbose: bool = False,
         eval_env: Execute_Environment = None
     ) -> dict[str, DeepAgent]:
@@ -394,7 +395,7 @@ class Reinforcement_DeepLearning:
         decay = agent_params.decay_rate
 
         model_path: str = os.path.join(
-            agent_params.savemodel_folder, "training", model_name
+            agent_params.savemodel_folder, run_id, model_name
         )
 
         every_n_steps_to_train_main_model = (

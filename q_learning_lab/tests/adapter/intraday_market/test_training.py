@@ -16,6 +16,7 @@ def test_training(get_intraday_config):
     intraday_config_dict:dict = get_intraday_config
     train_env:Intraday_Market_Environment = None
     eval_env:Intraday_Market_Environment = None
+    run_id:str="training"
 
     # 1. Create training and evaluation environments
     train_env, eval_env = Intraday_Market_Environment.create_from_config(
@@ -60,7 +61,8 @@ def test_training(get_intraday_config):
                 dnn_structure=dnn_params.get_dnn_structure(),
                 is_verbose=False,
                 model_name=model_name,
-                eval_env=eval_env
+                eval_env=eval_env,
+                run_id=run_id
             )
         pass
     #fork end here
