@@ -11,8 +11,26 @@ import math
 
 logger = get_logger(__name__)
 
-@pytest.mark.skip(reason="not yet ready -> to be demised")
+from q_learning_lab.port.lab_run import execute_lab_training
+
 def test_training(get_intraday_local_config):
+    intraday_config_dict:dict = get_intraday_local_config
+    run_id:str="test_training"
+
+    execute_lab_training(
+        lab_name="intraday-market-v0", 
+        lab_config=intraday_config_dict, 
+        run_id=run_id,
+        force_new=False,
+        is_verbose=False)
+
+
+
+
+    pass
+
+@pytest.mark.skip(reason="not yet ready -> to be demised")
+def test_training_old(get_intraday_local_config):
     intraday_config_dict:dict = get_intraday_local_config
     train_env:Intraday_Market_Environment = None
     eval_env:Intraday_Market_Environment = None
