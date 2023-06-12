@@ -21,6 +21,7 @@ class ForkProcessRunner:
             except Exception as ex:
                 os._exit(1)
                 pass
+            logger.info("Child process %s finished", os.getpid())
             os._exit(0)
             pass
         else:

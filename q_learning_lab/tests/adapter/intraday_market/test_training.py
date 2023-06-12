@@ -11,26 +11,27 @@ import math
 
 logger = get_logger(__name__)
 
-@pytest.mark.skipif("INTRADAY_TRAIN" not in os.environ,reason="not yet ready")
-def test_training(get_intraday_config):
-    intraday_config_dict:dict = get_intraday_config
+#@pytest.mark.skipif("INTRADAY_TRAIN" not in os.environ,reason="not yet ready")
+def test_training(get_intraday_local_config):
+    intraday_config_dict:dict = get_intraday_local_config
     train_env:Intraday_Market_Environment = None
     eval_env:Intraday_Market_Environment = None
     run_id:str="training"
-
+    
     # 1. Create training and evaluation environments
     train_env, eval_env = Intraday_Market_Environment.create_from_config(
         raw_data_config=intraday_config_dict["data_config"],
         feature_schema_config=intraday_config_dict["features"],
         pnl_config=intraday_config_dict["pnl_config"],
     )
+    
     #2. Reset the environments
     train_env.reset()
     eval_env.reset()
 
     logger.info(f"train_env data dimension: {train_env.get_data_dimension()}")
     logger.info(f"eval_env data dimension: {eval_env.get_data_dimension()}")
-
+     
     #3. create agent parameters - Agent_Params
     agent_params = Agent_Params(**intraday_config_dict["agent"])
     train_env_params = EnvParams(**intraday_config_dict["env"])

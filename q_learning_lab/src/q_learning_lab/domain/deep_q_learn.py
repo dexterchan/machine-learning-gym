@@ -466,11 +466,11 @@ class Reinforcement_DeepLearning:
         max_steps_allowed = train_env_params.n_max_steps
         best_reward:float = -float('inf')
         
-        end_iteration:int = min(total_episodes, episode + episode_batch) if train_env_params.batch_mode else total_episodes
+        end_iteration:int = min(total_episodes, episode + episode_batch) if train_env_params.batch_mode else total_episodes+1
 
-        logger.info(f"Start training {model_name} model iteration {episode} to {end_iteration}")
+        logger.info(f"Start training {model_name} model iteration {episode} to {end_iteration-1}")
 
-        for episode in range(episode, end_iteration+1):
+        for episode in range(episode, end_iteration):
             total_training_rewards: float = 0
             step_count:int = 0
             state, _ = train_env.reset()
