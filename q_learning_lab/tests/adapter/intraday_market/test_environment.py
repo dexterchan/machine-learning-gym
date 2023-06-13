@@ -1,5 +1,5 @@
 import json
-
+import re
 from q_learning_lab.utility.logging import get_logger
 from q_learning_lab.adapter.intraday_market.environment import Intraday_Market_Environment
 from q_learning_lab.adapter.intraday_market.environment import FeatureRunner
@@ -10,27 +10,67 @@ import pandas as pd
 import numpy as np
 import random
 import pytest
+import os
 
 logger = get_logger(__name__)
 
-@pytest.mark.skip(reason="skip")
+def test_regex_value(get_intraday_local_config):
+    intraday_config_dict:dict = get_intraday_local_config
+    Intraday_Market_Environment._regex_replace_with_env_variables(
+        intraday_config_dict["data_config"],
+    )
+    regex_processed_value = intraday_config_dict["data_config"]["input_data_dir"]
+    assert regex_processed_value == os.environ["DATA_DIR"]
+    
+    command_var_regex = re.compile(r"\$\((\w+)\)")
+    value = "/tmp/output/batch_run/$(RANDOM)"
+    m = command_var_regex.search(value)
+    assert m is not None
+    assert m[1] == "RANDOM"
+    abc = command_var_regex.sub("newvalue", value)
+    assert abc == "/tmp/output/batch_run/newvalue"
+
+    intraday_config_dict:dict = get_intraday_local_config
+    Intraday_Market_Environment._regex_sub_with_command(
+        intraday_config_dict["data_config"],
+    )
+    regex_processed_value = intraday_config_dict["data_config"]["output_data_dir"]
+    logger.info(regex_processed_value)
+    match_regex = re.compile(r"^/tmp/output/batch_run/([A-Z0-9]+)$") #([A-Z0-9]{10})$
+    m = match_regex.match(regex_processed_value)
+    assert m is not None
+    logger.info(m[1])
+    
+
+
+
 def test_intraday_market_environment(
-        get_feature_schema, 
-        get_training_eval_test_data_source,
-        get_intraday_config) -> None:
+        get_intraday_local_config) -> None:
     random.seed(0)
-    train_data_source, _ = get_training_eval_test_data_source
-    train_runner:FeatureRunner = FeatureRunner(
-        data_source=train_data_source,
-        feature_generator_type="OHLCV",
-        feature_plan=get_feature_schema,
+    
+    intraday_config_dict:dict = get_intraday_local_config
+    intraday_market_train_env, _ = Intraday_Market_Environment.create_from_config(
+        raw_data_config=intraday_config_dict["data_config"],
+        feature_schema_config={
+            "OHLCV":{
+                "volume": [
+                {
+                    "feature_name": "Log Volume movement",
+                    "feature_type": "LOG_PRICE",
+                    "feature_params": {
+                        "dimension": 10,
+                        "normalize_value": 5
+                    }
+                }
+            ]
+            }
+        },
+        pnl_config=intraday_config_dict["pnl_config"],
     )
 
-    intraday_config_dict:dict = get_intraday_config
-
-    intraday_market_train_env: Intraday_Market_Environment = Intraday_Market_Environment()
-    intraday_market_train_env.register_feature_runner(train_runner)
-    intraday_market_train_env.register_pnl_calc_config(intraday_config_dict["pnl_config"])
+    # intraday_market_train_env: Intraday_Market_Environment = Intraday_Market_Environment()
+    # intraday_market_train_env.register_feature_runner(train_runner)
+    # intraday_market_train_env.register_pnl_calc_config(intraday_config_dict["pnl_config"])
     data_id1:int = intraday_market_train_env._feature_runner.episode_id
 
     observation, time_inx = intraday_market_train_env.reset()
@@ -135,8 +175,9 @@ def test_intraday_market_environment(
     
     pass
 
-def test_intraday_market_train_env_with_class_function(get_intraday_config) -> None:
-    intraday_config_dict:dict = get_intraday_config
+@pytest.mark.skip(reason="skip")
+def test_intraday_market_train_env_with_class_function(get_intraday_local_config) -> None:
+    intraday_config_dict:dict = get_intraday_local_config
 
     train_env, eval_env = Intraday_Market_Environment.create_from_config(
         raw_data_config=intraday_config_dict["data_config"],

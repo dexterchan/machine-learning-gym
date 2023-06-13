@@ -2,6 +2,7 @@ from __future__ import annotations
 from ...adapter import Interface_Environment
 from .training_interface import TrainingDataBundleParameter
 import random
+import string
 import re
 import os
 import numpy as np
@@ -166,6 +167,76 @@ class Intraday_Market_Environment(Interface_Environment):
         self._step_counter:int = 0
         
     @classmethod
+    def parse_command(cls, command: str) -> str:
+        """_summary_
+
+        Args:
+            command (str): _description_
+
+        Raises:
+            ValueError: _description_
+            NotImplementedError: _description_
+            ValueError: _description_
+            ValueError: _description_
+
+        Returns:
+            str: _description_
+        """
+        if command.upper() == "RANDOM":
+            return "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        else:
+            return ""
+
+    @classmethod
+    def _regex_replace_with_env_variables(cls, raw_data_config:dict) -> dict:
+        """_summary_
+
+        Args:
+            raw_data_config (dict): configuration dictionary
+
+        Returns:
+            dict: _description_
+        """
+        env_var_regex = re.compile(r"\$\{(\w+)\}")
+        #in the raw_data_config dictionary, we may have some env variables
+        #we need to replace them with the actual value from the environment variable
+        for k, v in raw_data_config.items():
+            if isinstance(v, str):
+                match = env_var_regex.match(v)
+                if match:
+                    env_var_name = match.group(1)
+                    env_var_value = os.getenv(env_var_name)
+                    if env_var_value:
+                        raw_data_config[k] = env_var_value
+                    else:
+                        raise ValueError(f"Environment variable {env_var_name} is not defined")
+        return raw_data_config
+    
+    @classmethod
+    def _regex_sub_with_command(cls, raw_data_config:dict) -> dict:
+        """regex substitution with command
+
+        Args:
+            raw_data_config (dict): configuration dictionary
+
+        Returns:
+            dict: _description_
+        """
+        command_var_regex = re.compile(r"\$\((\w+)\)")
+        for k, v in raw_data_config.items():
+            if isinstance(v, str):
+                match = command_var_regex.search(v)
+                if match:
+                    command = match.group(1)
+                    command_value = cls.parse_command(command)
+                    if command_value:
+                        raw_data_config[k] = command_var_regex.sub(command_value, v)
+                    else:
+                        raise ValueError(f"Command {command} is not defined")
+        return raw_data_config
+
+    
+    @classmethod
     def create_from_config(cls, 
                            raw_data_config:dict, 
                            feature_schema_config:dict,
@@ -183,18 +254,15 @@ class Intraday_Market_Environment(Interface_Environment):
             tuple[Intraday_Market_Environment, Intraday_Market_Environment]: training and evaluation environment
 
         """
-        env_var_regex = re.compile(r"\$\{(\w+)\}")
+        
         #in the raw_data_config dictionary, we may have some env variables
         #we need to replace them with the actual value from the environment variable
-        for k, v in raw_data_config.items():
-            if isinstance(v, str):
-                match = env_var_regex.match(v)
-                if match:
-                    env_var_name = match.group(1)
-                    env_var_value = os.environ.get(env_var_name)
-                    if env_var_value is None:
-                        raise ValueError(f"Environment variable {env_var_name} is not defined")
-                    raw_data_config[k] = env_var_value
+        cls._regex_replace_with_env_variables(raw_data_config)
+
+        
+        #in the raw_data_config dictionary, we may have some command variables
+        #we need to replace them with the actual value from the command
+        cls._regex_sub_with_command(raw_data_config)
 
 
         bundle_params = TrainingDataBundleParameter(**raw_data_config)

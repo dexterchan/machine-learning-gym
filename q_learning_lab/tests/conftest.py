@@ -43,10 +43,10 @@ def get_training_eval_test_data_source(get_TrainingDataBundleParameter) -> tuple
     )
     return train_data_source, eval_data_source
 
-@pytest.fixture()
-def get_intraday_config() -> dict:
-    with open("./scripts/config/intraday_config_unit_test.json", "r") as f:
-        return json.load(f)
+# @pytest.fixture()
+# def get_intraday_config() -> dict:
+#     with open("./scripts/config/intraday_config_unit_test.json", "r") as f:
+#         return json.load(f)
 
 @pytest.fixture()   
 def get_intraday_local_config()->dict:
