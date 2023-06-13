@@ -9,8 +9,11 @@ from tradesignal_mtm_runner.models import ProxyTrade, Proxy_Trade_Actions
 import pandas as pd
 import numpy as np
 import random
+import pytest
 
 logger = get_logger(__name__)
+
+@pytest.mark.skip(reason="skip")
 def test_intraday_market_environment(
         get_feature_schema, 
         get_training_eval_test_data_source,

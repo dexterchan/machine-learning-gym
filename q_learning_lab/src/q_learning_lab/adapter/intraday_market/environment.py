@@ -98,7 +98,11 @@ class FeatureRunner():
         self._data_source.reset(kwargs=kwargs)
         self._read_pointer = 0
         self._feature_cache.clear()
-        return self._data_source.get_market_data_candles()
+        df:pd.DataFrame = self._data_source.get_market_data_candles()
+        logger.debug(df)
+        if len(df) == 0:
+            raise Exception("Data not found from this datasouce")
+        return df
         
 
     def stateful_step(self, increment_step:bool=True) -> tuple[np.ndarray, datetime, bool]:
