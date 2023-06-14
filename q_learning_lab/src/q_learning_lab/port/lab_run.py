@@ -119,12 +119,14 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
     #fork start here
     def _fork_training_process()->None:
         #5. create DNN structure - DNN_Params
-        model_struct = DNN_Params(**intraday_config_dict["model_param"]["data"]).get_dnn_structure()
+        dnn_params = DNN_Params(**intraday_config_dict["model_param"]["data"])
+        model_struct = dnn_params.get_dnn_structure()
         model_name = intraday_config_dict["model_param"]["meta"]["name"]
         
         if not force_new:
             #Construct the model path is loadable
             model_path = os.path.join(agent_params.savemodel_folder, run_id, f"{model_name}_latest")
+            logger.info(f"Trying to load latest model from {model_path}")
             #Check if the model path exists
             if Reinforcement_DeepLearning.check_agent_reloadable(model_path=model_path):
                 logger.info(f"Ready to continue the training from {model_path}")

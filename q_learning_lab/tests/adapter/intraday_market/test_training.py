@@ -13,6 +13,7 @@ logger = get_logger(__name__)
 
 from q_learning_lab.port.lab_run import execute_lab_training
 
+
 def test_training(get_intraday_local_config):
     intraday_config_dict:dict = get_intraday_local_config
     run_id:str="test_training"
@@ -23,10 +24,6 @@ def test_training(get_intraday_local_config):
         run_id=run_id,
         force_new=False,
         is_verbose=False)
-
-
-
-
     pass
 
 @pytest.mark.skip(reason="not yet ready -> to be demised")
@@ -35,7 +32,8 @@ def test_training_old(get_intraday_local_config):
     train_env:Intraday_Market_Environment = None
     eval_env:Intraday_Market_Environment = None
     run_id:str="training"
-    
+    force_new:bool = False
+
     # 1. Create training and evaluation environments
     train_env, eval_env = Intraday_Market_Environment.create_from_config(
         raw_data_config=intraday_config_dict["data_config"],
@@ -70,14 +68,27 @@ def test_training_old(get_intraday_local_config):
     def _fork_training_process()->None:
         #5. create DNN structure - DNN_Params
         dnn_params = DNN_Params(**intraday_config_dict["model_param"]["data"])
-        
-        #6. Use Reinforcement_DeepLearning.train to train the agent
+        model_struct = dnn_params.get_dnn_structure()
         model_name = intraday_config_dict["model_param"]["meta"]["name"]
+
+        
+        #Construct the model path is loadable
+        if not force_new:
+            #Construct the model path is loadable
+            model_path = os.path.join(agent_params.savemodel_folder, run_id, f"{model_name}_latest")
+            logger.info(f"Trying to load latest model from {model_path}")
+            #Check if the model path exists
+            if Reinforcement_DeepLearning.check_agent_reloadable(model_path=model_path):
+                logger.info(f"Ready to continue the training from {model_path}")
+                model_struct = model_path
+
+        #6. Use Reinforcement_DeepLearning.train to train the agent
+        
         deepagent_dict = Reinforcement_DeepLearning.train(
                 train_env=train_env,
                 agent_params=agent_params,
                 train_env_params=train_env_params,
-                dnn_structure=dnn_params.get_dnn_structure(),
+                dnn_structure=model_struct,
                 is_verbose=False,
                 model_name=model_name,
                 eval_env=eval_env,

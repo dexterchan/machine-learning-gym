@@ -478,6 +478,7 @@ class Reinforcement_DeepLearning:
             logger.info(f"Batch Training Episode: {episode}/{total_episodes}")
 
             while not terminated:
+                logger.debug(f"training at {step_count} step")
                 step_count += 1
                 if max_steps_allowed!=0 and step_count >= max_steps_allowed:
                     logger.info(f"Reach max step allowed:{step_count}")
