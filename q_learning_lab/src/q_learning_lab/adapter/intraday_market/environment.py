@@ -266,6 +266,7 @@ class Intraday_Market_Environment(Interface_Environment):
 
 
         bundle_params = TrainingDataBundleParameter(**raw_data_config)
+        logger.info(f"Note: Execute training with {bundle_params._asdict()}")
         
         train_data_source, eval_data_source = File_Data_Source_Factory.prepare_training_eval_data_source(
             bundle_para=bundle_params
