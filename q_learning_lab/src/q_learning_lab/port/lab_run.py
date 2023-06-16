@@ -3,9 +3,9 @@ from .environment import create_execute_environment
 from ..domain.models.agent_params import Agent_Params
 from ..domain.models.env_params import BaseEnv_Params
 
-from ..domain.deep_q_learn import Reinforcement_DeepLearning
+from ..domain.deep_q_learn import Reinforcement_DeepLearning, SequentialStructure
 from ..utility.logging import get_logger
-from typing import Any
+from typing import Any, Union
 import os
 import math
 
@@ -74,6 +74,32 @@ def create_train_materials(lab_name:str, lab_config: dict) -> tuple:
     else:
         raise NotImplementedError(f"lab_name: {lab_name} not implemented")  
 
+def _check_if_latest_model_exists_and_load(
+        model_name: str, 
+        run_id: str, 
+        agent_params:Agent_Params,
+        model_struct:SequentialStructure) -> Union[SequentialStructure,str]:
+    """ check if latest model exists and loadable
+
+    Args:
+        model_name (str): model name
+        run_id (str): run id
+        agent_params (Agent_Params): agent parameter
+        model_struct (SequentialStructure): new model structure
+
+    Returns:
+        Union[SequentialStructure,str]: if exists, return string path, else return a new SequentialStructure
+    """
+    #Construct the model path is loadable
+    model_path =  f"{Reinforcement_DeepLearning.create_model_path_root(agent_params=agent_params, model_name=model_name, run_id=run_id)}_latest"
+    logger.info(f"Trying to load latest model from {model_path}")
+    
+    #Check if the model path exists
+    if Reinforcement_DeepLearning.check_agent_reloadable(model_path=model_path):
+        logger.info(f"Ready to continue the training from {model_path}")
+        model_struct = model_path
+    return model_struct
+
 def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, force_new:bool, run_id:str) -> None:
     """
         Execute the lab training.
@@ -124,13 +150,12 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
         model_name = intraday_config_dict["model_param"]["meta"]["name"]
         
         if not force_new:
-            #Construct the model path is loadable
-            model_path = os.path.join(agent_params.savemodel_folder, run_id, f"{model_name}_latest")
-            logger.info(f"Trying to load latest model from {model_path}")
-            #Check if the model path exists
-            if Reinforcement_DeepLearning.check_agent_reloadable(model_path=model_path):
-                logger.info(f"Ready to continue the training from {model_path}")
-                model_struct = model_path
+            model_struct = _check_if_latest_model_exists_and_load(
+                model_name=model_name,
+                run_id=run_id,
+                agent_params=agent_params,
+                model_struct=model_struct
+            )
         
         #6. Use Reinforcement_DeepLearning.train to train the agent
         _ = Reinforcement_DeepLearning.train(
@@ -155,44 +180,44 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
     pass
 
 
-def execute_lab_training_old(lab_name: str, lab_config: dict, is_verbose: bool) -> None:
-    # Convert parameter dict to Cart_Pole_V1_Params
+# def execute_lab_training_old(lab_name: str, lab_config: dict, is_verbose: bool) -> None:
+#     # Convert parameter dict to Cart_Pole_V1_Params
 
-    dnn_structure, train_env, eval_env, baseEnv_Params, _agent_config = create_train_materials(lab_name=lab_name, lab_config=lab_config)
+#     dnn_structure, train_env, eval_env, baseEnv_Params, _agent_config = create_train_materials(lab_name=lab_name, lab_config=lab_config)
     
-    # Create the model path
-    model_path:str = os.path.join(
-            _agent_config.savemodel_folder, "training", f"{lab_name}-latest"
-    )
-    num_of_batch = math.ceil(int(baseEnv_Params.total_episodes) / int(baseEnv_Params.episode_batch))
+#     # Create the model path
+#     model_path:str = os.path.join(
+#             _agent_config.savemodel_folder, "training", f"{lab_name}-latest"
+#     )
+#     num_of_batch = math.ceil(int(baseEnv_Params.total_episodes) / int(baseEnv_Params.episode_batch))
     
-    sub_env_config:BaseEnv_Params = BaseEnv_Params(
-        total_episodes=baseEnv_Params.episode_batch,
-        n_max_steps=baseEnv_Params.n_max_steps,
-        episode_batch=baseEnv_Params.episode_batch,
-    )
-    for i in range(num_of_batch):
-        logger.info(f"Batch {i+1} of {num_of_batch}")
-        if i > 0:
-            dnn_structure = model_path
+#     sub_env_config:BaseEnv_Params = BaseEnv_Params(
+#         total_episodes=baseEnv_Params.episode_batch,
+#         n_max_steps=baseEnv_Params.n_max_steps,
+#         episode_batch=baseEnv_Params.episode_batch,
+#     )
+#     for i in range(num_of_batch):
+#         logger.info(f"Batch {i+1} of {num_of_batch}")
+#         if i > 0:
+#             dnn_structure = model_path
         
-        deepagent_dict = Reinforcement_DeepLearning.train(
-            train_env=train_env,
-            eval_env=eval_env,
-            agent_params=_agent_config,
-            train_env_params=sub_env_config,
-            dnn_structure=dnn_structure,
-            is_verbose=is_verbose,
-            model_name=lab_name,
-            run_id="training"
-        )
-        deepagent_dict["main"].save_agent(
-            path=model_path,
-            episode=deepagent_dict["episode"],
-            epsilon=deepagent_dict["epsilon"],
-            total_rewards_history=deepagent_dict["total_rewards_history"],
-            eval_rewards_history=deepagent_dict["eval_rewards_history"],
-        )
+#         deepagent_dict = Reinforcement_DeepLearning.train(
+#             train_env=train_env,
+#             eval_env=eval_env,
+#             agent_params=_agent_config,
+#             train_env_params=sub_env_config,
+#             dnn_structure=dnn_structure,
+#             is_verbose=is_verbose,
+#             model_name=lab_name,
+#             run_id="training"
+#         )
+#         deepagent_dict["main"].save_agent(
+#             path=model_path,
+#             episode=deepagent_dict["episode"],
+#             epsilon=deepagent_dict["epsilon"],
+#             total_rewards_history=deepagent_dict["total_rewards_history"],
+#             eval_rewards_history=deepagent_dict["eval_rewards_history"],
+#         )
         
 
-    return deepagent_dict
+#     return deepagent_dict

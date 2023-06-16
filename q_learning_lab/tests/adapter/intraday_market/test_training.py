@@ -11,7 +11,7 @@ import math
 
 logger = get_logger(__name__)
 
-from q_learning_lab.port.lab_run import execute_lab_training
+from q_learning_lab.port.lab_run import execute_lab_training, _check_if_latest_model_exists_and_load
 
 
 def test_training(get_intraday_local_config):
@@ -67,6 +67,7 @@ def test_training_old(get_intraday_local_config):
      #fork start here
     def _fork_training_process()->None:
         #5. create DNN structure - DNN_Params
+        
         dnn_params = DNN_Params(**intraday_config_dict["model_param"]["data"])
         model_struct = dnn_params.get_dnn_structure()
         model_name = intraday_config_dict["model_param"]["meta"]["name"]
@@ -74,13 +75,19 @@ def test_training_old(get_intraday_local_config):
         
         #Construct the model path is loadable
         if not force_new:
-            #Construct the model path is loadable
-            model_path = os.path.join(agent_params.savemodel_folder, run_id, f"{model_name}_latest")
-            logger.info(f"Trying to load latest model from {model_path}")
-            #Check if the model path exists
-            if Reinforcement_DeepLearning.check_agent_reloadable(model_path=model_path):
-                logger.info(f"Ready to continue the training from {model_path}")
-                model_struct = model_path
+            model_struct = _check_if_latest_model_exists_and_load(
+                model_name=model_name,
+                run_id=run_id,
+                agent_params=agent_params,
+                model_struct=model_struct
+            )
+            # #Construct the model path is loadable
+            # model_path = os.path.join(agent_params.savemodel_folder, run_id, f"{model_name}_latest")
+            # logger.info(f"Trying to load latest model from {model_path}")
+            # #Check if the model path exists
+            # if Reinforcement_DeepLearning.check_agent_reloadable(model_path=model_path):
+            #     logger.info(f"Ready to continue the training from {model_path}")
+            #     model_struct = model_path
 
         #6. Use Reinforcement_DeepLearning.train to train the agent
         

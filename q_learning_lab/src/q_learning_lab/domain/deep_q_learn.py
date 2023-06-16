@@ -149,11 +149,11 @@ class DeepAgent:
         agent_path = path + ".json"
 
         if not os.path.exists(tensorflow_model_path) or not os.path.isdir(tensorflow_model_path):
-            logger.error(f"Tensorflow model path {tensorflow_model_path} not found")
+            logger.warning(f"Tensorflow model path {tensorflow_model_path} not found")
             return False
         
         if not os.path.exists(agent_path) or not os.path.isfile(agent_path):
-            logger.error(f"Tensorflow model training meta data not exists: {agent_path}")
+            logger.warning(f"Tensorflow model training meta data not exists: {agent_path}")
             return False
         return True
 
@@ -359,6 +359,12 @@ class Reinforcement_DeepLearning:
         return DeepAgent.check_agent_loadable_from_path(path=model_path)
 
     @staticmethod
+    def create_model_path_root(agent_params:Agent_Params, model_name:str, run_id:str) -> str:
+        return os.path.join(
+            agent_params.savemodel_folder, run_id, model_name
+        )
+
+    @staticmethod
     def train(
         train_env: Execute_Environment,
         agent_params: Agent_Params,
@@ -394,8 +400,8 @@ class Reinforcement_DeepLearning:
         )  # At a minimum, we'll always explore 1% of the time
         decay = agent_params.decay_rate
 
-        model_path: str = os.path.join(
-            agent_params.savemodel_folder, run_id, model_name
+        model_path: str = Reinforcement_DeepLearning.create_model_path_root(
+            agent_params=agent_params, model_name=model_name, run_id=run_id
         )
 
         every_n_steps_to_train_main_model = (
