@@ -103,8 +103,8 @@ def test_intraday_market_environment(
     # inx = info['inx']
     # time_inx = info['time_inx']
     
-    assert len(intraday_market_train_env._trade_order_agent.mtm_history) > 0
-    assert len(intraday_market_train_env._trade_order_agent.mtm_history) == intraday_market_train_env.step_counter 
+    assert len(intraday_market_train_env._trade_order_agent.mtm_history_value) > 0
+    assert len(intraday_market_train_env._trade_order_agent.mtm_history_value) == intraday_market_train_env.step_counter 
     assert len(outstanding_long_position_list) == 1, "only 1 trade in the first step"
     assert len(archive_long_position_list)==0
     assert done == False
@@ -163,15 +163,15 @@ def test_intraday_market_environment(
     trade:ProxyTrade = intraday_market_train_env._trade_order_agent.archive_long_positions_list[0]
     assert trade.close_reason == Proxy_Trade_Actions.SIGNAL
     logger.info(trade)
-    _mtm = intraday_market_train_env._trade_order_agent.mtm_history
+    _mtm = intraday_market_train_env._trade_order_agent.mtm_history_value
     _mtm_filtered = [ x for x in _mtm if (x > 0) or (x < 0)]
     logger.info("MtM sum list =  %s", np.sum(_mtm_filtered))
-    logger.info("MtM sum =  %s", np.sum(intraday_market_train_env._trade_order_agent.mtm_history))
+    logger.info("MtM sum =  %s", np.sum(intraday_market_train_env._trade_order_agent.mtm_history_value))
 
     logger.info("Trade MTM = %s ", (trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2)
     logger.info("Trade MTM = %s ", trade.calculate_pnl_normalized(price=trade.exit_price,fee_included=True))
     logger.info(intraday_config_dict)
-    assert abs((trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2 - np.sum(intraday_market_train_env._trade_order_agent.mtm_history)) < 0.1
+    assert abs((trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2 - np.sum(intraday_market_train_env._trade_order_agent.mtm_history_value)) < 0.1
     
     pass
 
@@ -191,8 +191,8 @@ def test_intraday_market_train_env_with_class_function(get_intraday_local_config
     episode_id1:int = train_env._feature_runner.episode_id
     assert len(train_env._trade_order_agent.outstanding_long_position_list) == 0
     assert len(train_env._trade_order_agent.archive_long_positions_list) == 0
-    assert len(train_env._trade_order_agent.mtm_history) == 0
-    assert len(train_env._trade_order_agent.mtm_history) == train_env.step_counter
+    assert len(train_env._trade_order_agent.mtm_history_value) == 0
+    assert len(train_env._trade_order_agent.mtm_history_value) == train_env.step_counter
     assert train_env.step_counter == 0
 
     
@@ -230,10 +230,10 @@ def test_intraday_market_train_env_with_class_function(get_intraday_local_config
     last_trade:ProxyTrade = train_env._trade_order_agent.archive_long_positions_list[-1]
     assert last_trade.close_reason == Proxy_Trade_Actions.SIGNAL
     logger.info(last_trade)
-    _mtm = train_env._trade_order_agent.mtm_history
+    _mtm = train_env._trade_order_agent.mtm_history_value
     _mtm_filtered = [ x for x in _mtm if (x > 0) or (x < 0)]
     logger.info("MtM sum list =  %s", np.sum(_mtm_filtered))
-    logger.info("MtM sum =  %s", np.sum(train_env._trade_order_agent.mtm_history))
+    logger.info("MtM sum =  %s", np.sum(train_env._trade_order_agent.mtm_history_value))
 
     # add up trade mtm
     trade_mtm_sum:float = 0 
@@ -241,6 +241,7 @@ def test_intraday_market_train_env_with_class_function(get_intraday_local_config
         #Not working, as calculate_pnl_normalized not consistent with the expected equation
         #trade_mtm_sum += trade.calculate_pnl_normalized(price=trade.exit_price,fee_included=True)
         trade_mtm_sum += (trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2
-    assert abs(trade_mtm_sum - np.sum(train_env._trade_order_agent.mtm_history)) < 0.00001
+    assert abs(trade_mtm_sum - np.sum(train_env._trade_order_agent.mtm_history_value)) < 0.00001
 
+    mkt_data:pd.DataFrame = train_env.get_current_market_data()
     pass

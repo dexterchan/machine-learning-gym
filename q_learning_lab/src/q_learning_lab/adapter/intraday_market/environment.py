@@ -380,9 +380,9 @@ class Intraday_Market_Environment(Interface_Environment):
                 price_diff=_price_movement,
                 buy_sell_action=buy_sell_action_space,
             )
-        logger.debug("MTM history: %s", self._trade_order_agent.mtm_history)
-        logger.debug("MTM history length: %s", len(self._trade_order_agent.mtm_history))
-        interm_reward = self._trade_order_agent.mtm_history[self.step_counter]
+        logger.debug("MTM history: %s", self._trade_order_agent.mtm_history_value)
+        logger.debug("MTM history length: %s", len(self._trade_order_agent.mtm_history_value))
+        interm_reward = self._trade_order_agent.mtm_history_value[self.step_counter]
         
         logger.debug("Interm reward: %s", interm_reward)
 
@@ -395,11 +395,7 @@ class Intraday_Market_Environment(Interface_Environment):
             end_of_episode,
             end_of_episode,
             {}
-            # {"mtm_ratio":(self._trade_order_agent.mtm_history),
-            #  "time_inx":time_inx,
-            #  "inx":int(_inx),
-            #  "long_trade_outstanding":self._trade_order_agent.outstanding_long_position_list,
-            #  "long_trade_archive":self._trade_order_agent.archive_long_positions_list},
+            
         )
 
     def close(self):
@@ -470,3 +466,11 @@ class Intraday_Market_Environment(Interface_Environment):
             tuple[int,int]: data dimension
         """
         return self._feature_runner.data_dimension
+    
+    def get_current_market_data(self) -> pd.DataFrame:
+        """get current market data
+
+        Returns:
+            pd.DataFrame: Data frame
+        """
+        return self._feature_runner.get_current_market_data()

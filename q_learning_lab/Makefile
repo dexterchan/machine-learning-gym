@@ -125,3 +125,10 @@ test_local: export DATA_DIR=$(shell pwd)/data
 test_local:
 	echo ${PYTHONPATH}
 	pytest tests
+
+run_jupyter: export PYTHONPATH=$(shell pwd)/src
+run_jupyter: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
+run_jupyter:
+	jupyter lab
+	#jupyter notebook --notebook-dir=notebooks
+
