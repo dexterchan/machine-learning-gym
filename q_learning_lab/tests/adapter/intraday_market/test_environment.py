@@ -171,7 +171,7 @@ def test_intraday_market_environment(
     logger.info("Trade MTM = %s ", (trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2)
     logger.info("Trade MTM = %s ", trade.calculate_pnl_normalized(price=trade.exit_price,fee_included=True))
     logger.info(intraday_config_dict)
-    assert abs((trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2 - np.sum(intraday_market_train_env._trade_order_agent.mtm_history_value)) < 0.1
+    assert abs(trade.calculate_pnl_normalized(trade.exit_price,True) - np.sum(intraday_market_train_env._trade_order_agent.mtm_history_value)) < 0.1
     
     pass
 
@@ -239,8 +239,8 @@ def test_intraday_market_train_env_with_class_function(get_intraday_local_config
     trade_mtm_sum:float = 0 
     for trade in train_env._trade_order_agent.archive_long_positions_list:
         #Not working, as calculate_pnl_normalized not consistent with the expected equation
-        #trade_mtm_sum += trade.calculate_pnl_normalized(price=trade.exit_price,fee_included=True)
-        trade_mtm_sum += (trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2
+        trade_mtm_sum += trade.calculate_pnl_normalized(price=trade.exit_price,fee_included=True)
+        #trade_mtm_sum += (trade.exit_price - trade.entry_price)/trade.entry_price - intraday_config_dict["pnl_config"]["fee_rate"]*2
     assert abs(trade_mtm_sum - np.sum(train_env._trade_order_agent.mtm_history_value)) < 0.00001
 
     mkt_data:pd.DataFrame = train_env.get_current_market_data()
