@@ -81,7 +81,8 @@
         "fixed_unit_amount": 10,
         "enable_short_position": false,
         "max_position_per_symbol": 1,
-        "fee_rate": 0.1
+        "fee_rate": 0.0026,
+        "laid_back_tax": 0.000002
     },
     "model_param": {
         "meta": {
