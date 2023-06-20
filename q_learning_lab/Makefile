@@ -132,3 +132,9 @@ run_jupyter:
 	jupyter lab
 	#jupyter notebook --notebook-dir=notebooks
 
+run_jupyter_local: export PYTHONPATH=$(shell pwd)/src
+run_jupyter_local: export DATA_DIR=$(shell pwd)/data
+run_jupyter_local:
+	jupyter lab --allow-root
+	#jupyter notebook --notebook-dir=notebooks
+
