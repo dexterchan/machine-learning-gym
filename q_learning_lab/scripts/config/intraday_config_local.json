@@ -3,7 +3,7 @@
         "total_episodes": 1000,
         "n_max_steps": 3000,
         "episode_batch": 20,
-        "batch_mode":true
+        "batch_mode": true
     },
     "data_config": {
         "exchange": "kraken",
@@ -80,7 +80,8 @@
         "fixed_unit_amount": 10,
         "enable_short_position": false,
         "max_position_per_symbol": 1,
-        "fee_rate": 0.1
+        "fee_rate": 0.0026,
+        "laid_back_tax": 0.000002
     },
     "model_param": {
         "meta": {
