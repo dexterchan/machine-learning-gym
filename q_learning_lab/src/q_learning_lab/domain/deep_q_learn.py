@@ -4,6 +4,7 @@ from ..port.environment import Execute_Environment
 import random
 import tensorflow as tf
 import tensorflow.keras.initializers as kernel_initializer
+from datetime import datetime
 from tensorflow import keras
 from keras.losses import LossFunctionWrapper
 from keras.optimizers import Optimizer
@@ -358,11 +359,20 @@ class Reinforcement_DeepLearning:
         """
         return DeepAgent.check_agent_loadable_from_path(path=model_path)
 
-    @staticmethod
-    def create_model_path_root(agent_params:Agent_Params, model_name:str, run_id:str) -> str:
+    @classmethod
+    def create_model_path_root(cls, agent_params:Agent_Params, model_name:str, run_id:str) -> str:
         return os.path.join(
             agent_params.savemodel_folder, run_id, model_name
         )
+    
+    @classmethod
+    def create_model_path_fit_log_dir(cls, agent_params:Agent_Params, model_name:str, run_id:str) -> str:
+        path_str:str = cls.create_model_path_root(
+            agent_params=agent_params, model_name=model_name, run_id=run_id
+        )
+        log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+
+        return os.path.join(path_str, log_dir)
 
     @staticmethod
     def train(
@@ -611,8 +621,9 @@ class Reinforcement_DeepLearning:
                 "eval_rewards_history": eval_rewards_history
                 }
 
-    @staticmethod
+    @classmethod
     def _train_main_model(
+        cls,
         main: DeepAgent,
         target: DeepAgent,
         mini_batch: list[list],
@@ -620,6 +631,9 @@ class Reinforcement_DeepLearning:
         next_states: np.array,
         learning_rate: float,
         discount_factor: float,
+        validation_split:float = 0,
+        training_epoch:int = 100,
+        training_fit_log:str = None
     ) -> DeepAgent:
         """_summary_
 
@@ -631,6 +645,9 @@ class Reinforcement_DeepLearning:
             next_states (np.array): _description_
             learning_rate (float): _description_
             discount_factor (float): _description_
+            validation_split(float): fraction of data for validation
+            training_epoch (int): training epoch
+            training_fit_log (str): training fit log
 
         Returns:
             DeepAgent: _description_
@@ -638,6 +655,16 @@ class Reinforcement_DeepLearning:
 
         current_qs_list = main.predict_batch(current_states)
         future_qs_list = target.predict_batch(next_states)
+
+        callbacks = None
+
+        if training_fit_log is not None:
+            #Tensorboard
+            tensorboard_callback = tf.keras.callbacks.TensorBoard(
+            log_dir=training_fit_log, 
+            histogram_freq=1)
+            callbacks = [tensorboard_callback]
+        
 
         X = []
         Y = []
@@ -652,5 +679,11 @@ class Reinforcement_DeepLearning:
             )
             X.append(state)
             Y.append(current_qs)
-        main.model.fit(np.array(X), np.array(Y), batch_size=len(X), verbose=0)
+        main.model.fit(
+            np.array(X), np.array(Y), 
+            batch_size=len(X), 
+            epochs=training_epoch, 
+            validation_split=validation_split,
+            callbacks=callbacks,
+            verbose=0)
         return main

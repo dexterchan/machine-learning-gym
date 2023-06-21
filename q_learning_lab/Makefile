@@ -116,6 +116,7 @@ dummy_run:
 
 test: export PYTHONPATH=$(shell pwd)/src
 test: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
+test: export CI=true
 test:
 	echo ${PYTHONPATH}
 	rm -Rf _static/model
@@ -123,6 +124,7 @@ test:
 
 test_local: export PYTHONPATH=$(shell pwd)/src
 test_local: export DATA_DIR=$(shell pwd)/data
+test_local: export CI=true
 test_local:
 	echo ${PYTHONPATH}
 	rm -Rf _static/model
