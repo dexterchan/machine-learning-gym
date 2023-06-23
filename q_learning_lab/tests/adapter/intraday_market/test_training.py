@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 
 from q_learning_lab.port.lab_run import execute_lab_training, _check_if_latest_model_exists_and_load
 
-
+@pytest.mark.skipif(os.environ.get("CI") == "true", reason="CI does not have the data")
 def test_training(get_intraday_local_config):
     intraday_config_dict:dict = get_intraday_local_config
     run_id:str="test_training"
