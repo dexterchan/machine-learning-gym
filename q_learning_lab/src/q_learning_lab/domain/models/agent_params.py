@@ -17,6 +17,8 @@ class Agent_Params(NamedTuple):
     every_m_steps_to_copy_main_weights_to_target_model: int = (
         100  # Copy weights every m steps
     )
+    validation_split:float = 0.2 # validation split for training
+    dnn_training_epoch:int = 100 # training epoch for dnn
     save_agent_every_n_episode: int = 10  # Save agent every n episodes
     worse_than_best_reward_count_limit:int = 100
     replay_memory_size: int = 50000  # Maximum size of replay memory

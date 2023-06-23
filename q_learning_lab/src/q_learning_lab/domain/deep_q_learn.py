@@ -179,13 +179,16 @@ class DeepAgent:
                 kernel_initializer=structure.initializer,
             )
         )
-        for layer in structure.process_layers:
+        for i, layer in enumerate(structure.process_layers):
             model.add(
                 keras.layers.Dense(
                     units=layer.units,
                     activation=layer.activation,
                     kernel_initializer=structure.initializer,
                 )
+            )
+            model.add(
+                keras.layers.Dropout(0.2, name=f'layers_{i}_dropout'),
             )
         model.compile(
             loss=structure.loss_function,
@@ -366,16 +369,17 @@ class Reinforcement_DeepLearning:
         )
     
     @classmethod
-    def create_model_path_fit_log_dir(cls, agent_params:Agent_Params, model_name:str, run_id:str) -> str:
+    def create_model_path_fit_log_dir(cls, agent_params:Agent_Params, model_name:str, run_id:str, episode:int) -> str:
         path_str:str = cls.create_model_path_root(
             agent_params=agent_params, model_name=model_name, run_id=run_id
         )
-        log_dir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_dir = f'logs/fit/epoch{episode}-{datetime.now().strftime("%Y%m%d-%H%M%S")}'
 
         return os.path.join(path_str, log_dir)
 
-    @staticmethod
+    @classmethod
     def train(
+        cls,
         train_env: Execute_Environment,
         agent_params: Agent_Params,
         train_env_params: BaseEnv_Params,
@@ -525,6 +529,15 @@ class Reinforcement_DeepLearning:
                     ):
                         # sample a minibatch from the replay memory
                         mini_batch = random.sample(replay_memory_list, train_batch_size)
+
+
+                        training_fig_log:str = (cls.create_model_path_fit_log_dir(
+                            agent_params=agent_params,
+                            model_name=model_name,
+                            run_id=run_id,
+                            episode=episode
+                        ) if episode % agent_params.save_agent_every_n_episode == 0 else None)
+
                         main = Reinforcement_DeepLearning._train_main_model(
                             main=main,
                             target=target,
@@ -537,6 +550,9 @@ class Reinforcement_DeepLearning:
                             ),
                             learning_rate=learning_rate,
                             discount_factor=discount_factor,
+                            training_fit_log=training_fig_log,
+                            validation_split=agent_params.validation_split,
+                            training_epoch=agent_params.dnn_training_epoch
                         )
                 state = next_state
                 total_training_rewards += reward
@@ -632,7 +648,7 @@ class Reinforcement_DeepLearning:
         learning_rate: float,
         discount_factor: float,
         validation_split:float = 0,
-        training_epoch:int = 100,
+        training_epoch:int = 10,
         training_fit_log:str = None
     ) -> DeepAgent:
         """_summary_
