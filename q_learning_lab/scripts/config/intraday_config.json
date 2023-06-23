@@ -67,7 +67,12 @@
         "start_epsilon": 1.0,
         "min_epsilon": 0.05,
         "decay_rate": 0.001,
-        "save_best_only": true
+        "save_best_only": true,
+        "save_agent_every_n_episode": 10,
+        "every_n_steps_to_train_main_model": 100,
+        "every_m_steps_to_copy_main_weights_to_target_model": 500,
+        "validation_split": 0.2,
+        "dnn_training_epoch": 10
     },
     "pnl_config": {
         "roi": {
