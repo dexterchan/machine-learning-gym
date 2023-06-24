@@ -52,6 +52,7 @@ class DNN_Params(NamedTuple):
         {"units": 16*2, "activation": "relu"},
         {"units": 16*2, "activation": "relu"},
     ]
+    dnn_learning_rate:float = 0.001
     output_layer_struct:dict = {"units": len(Intraday_Trade_Action_Space), "activation": "linear"}
     
     def abc(self) -> None:
@@ -77,6 +78,6 @@ class DNN_Params(NamedTuple):
                 ProcessLayer(**self.output_layer_struct),
             ],
             loss_function=tf.keras.losses.Huber(),
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=self.dnn_learning_rate),
         )
     pass
