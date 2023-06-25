@@ -88,7 +88,10 @@ class FeatureRunner():
         #Cache feature
         self._feature_cache[self._data_source.data_id] = new_feature_output
         return new_feature_output
-        
+    
+    def _init_runner_state(self) -> None:
+        self._read_pointer = 0
+        self._feature_cache.clear()
 
     def reset(self, **kwargs) -> pd.DataFrame:
         """Reset the data source and return the market data candles
@@ -97,14 +100,17 @@ class FeatureRunner():
             pd.DataFrame: _description_
         """
         self._data_source.reset(kwargs=kwargs)
-        self._read_pointer = 0
-        self._feature_cache.clear()
+        self._init_runner_state()
         df:pd.DataFrame = self._data_source.get_market_data_candles()
         logger.debug(df)
         if len(df) == 0:
             raise Exception("Data not found from this datasouce")
         return df
-        
+    
+    def __iter__(self) -> FeatureRunner:
+        for _ in (self._data_source):
+            self._init_runner_state()
+            yield self
 
     def stateful_step(self, increment_step:bool=True) -> tuple[np.ndarray, datetime, bool]:
         """_summary_
@@ -329,6 +335,12 @@ class Intraday_Market_Environment(Interface_Environment):
         )
         self._step_counter = 0
         return observation, time_inx
+    
+    # iterate all feature runners
+    def __iter__(self) -> Intraday_Market_Environment:
+
+
+        return self
 
     def step(self, action: Intraday_Trade_Action_Space) -> tuple[np.ndarray, float, bool, bool, dict]:
         """step function
