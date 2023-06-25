@@ -121,8 +121,8 @@ def test_iterate_feature_generator(get_feature_schema, get_training_eval_test_da
         feature_generator_type="OHLCV",
         feature_plan=get_feature_schema,
     )
-
-    for cnt, _runner in enumerate(eval_runner):
+    eval_runner_itr = iter(eval_runner)
+    for cnt, _runner in enumerate(eval_runner_itr):
         assert _runner._read_pointer == 0
         candles:pd.DataFrame = _runner._data_source.get_market_data_candles(remove_scenario=False)
         unique_episode_numbers = candles["scenario"].unique()
