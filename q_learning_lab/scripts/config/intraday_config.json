@@ -60,7 +60,7 @@
     },
     "agent": {
         "learning_rate": 0.001,
-        "gamma": 0.618,
+        "gamma": 0.9,
         "epsilon": 0.1,
         "savefig_folder": "_static/img/test/",
         "savemodel_folder": "_static/model/test/",
@@ -70,7 +70,7 @@
         "save_best_only": true,
         "save_agent_every_n_episode": 10,
         "every_n_steps_to_train_main_model": 100,
-        "every_m_steps_to_copy_main_weights_to_target_model": 500,
+        "every_m_steps_to_copy_main_weights_to_target_model": 300,
         "validation_split": 0.2,
         "dnn_training_epoch": 10
     },
@@ -98,6 +98,8 @@
             "first_layer_struct": { "units": 30, "activation": "relu" },
             "mid_layers_struct": [
                 { "units": 30, "activation": "relu" },
+                { "units": 20, "activation": "relu" },
+                { "units": 20, "activation": "relu" },
                 { "units": 20, "activation": "relu" },
                 { "units": 10, "activation": "relu" }
             ],

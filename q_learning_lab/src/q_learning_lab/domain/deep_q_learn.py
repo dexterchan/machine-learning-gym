@@ -695,6 +695,7 @@ class Reinforcement_DeepLearning:
             )
             X.append(state)
             Y.append(current_qs)
+        logger.info(f"fit model validation_split{validation_split} training_fit_log{training_fit_log}")
         main.model.fit(
             np.array(X), np.array(Y), 
             batch_size=len(X), 
