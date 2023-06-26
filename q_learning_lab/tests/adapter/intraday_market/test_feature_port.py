@@ -11,7 +11,7 @@ from q_learning_lab.adapter.intraday_market.data_input import Data_Source
 import pytest
 import json
 import pandas as pd
-
+import random
 from q_learning_lab.utility.tools import timeit
 from tests.adapter.intraday_market.test_environment import logger
 
@@ -47,7 +47,7 @@ def test_feature_factory(get_feature_schema, get_training_eval_test_data_source)
 # Path: tests/adapter/intraday_market/test_environment.py
 
 def test_feature_runner(get_feature_schema, get_training_eval_test_data_source) -> None:
-
+    random.seed(1)
     train_data_source, eval_data_source = get_training_eval_test_data_source
     train_runner:FeatureRunner = FeatureRunner(
         data_source=train_data_source,

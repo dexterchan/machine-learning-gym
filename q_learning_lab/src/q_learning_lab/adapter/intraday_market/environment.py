@@ -491,3 +491,8 @@ class Intraday_Market_Environment(Interface_Environment):
             pd.DataFrame: Data frame
         """
         return self._feature_runner.get_current_market_data()
+    
+    @property
+    def measure_result(self) -> float:
+        sharpe_ratio = self._trade_order_agent._calculate_sharpe_ratio()
+        return sharpe_ratio

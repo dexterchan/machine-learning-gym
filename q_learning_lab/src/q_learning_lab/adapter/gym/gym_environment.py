@@ -110,3 +110,10 @@ class Cart_Pole_v1_Environment:
     @property
     def action_space_dim(self) -> int:
         return self.env.action_space.n
+    
+    @property
+    def measure_result(self) -> float:
+        return 0
+
+    def __iter__(self):
+        yield self

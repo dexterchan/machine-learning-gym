@@ -378,6 +378,34 @@ class Reinforcement_DeepLearning:
         return os.path.join(path_str, log_dir)
 
     @classmethod
+    def do_eval(cls, episode:int, eval_env:Execute_Environment, agent:DeepAgent, max_step_allowed:int, min_epsilon:float) -> dict:
+        eval_env_itr = iter(eval_env)
+        #Iterate the eval env to run scenario
+        _env:Execute_Environment = None
+        eval_reward_lst = []
+        measure_result_lst = []
+        for _env in eval_env_itr:
+            eval_reward, _ = agent.play(
+                env=_env,
+                max_step=max_step_allowed,
+                epsilon=min_epsilon,
+                is_exploit_only=False
+            )
+            eval_reward_lst.append(eval_reward)
+            #calcualte sharpe ratio
+            measure_result_lst.append(_env.measure_result)
+            pass
+        #Summarize eval_result
+        return {
+            "episode": episode,
+            "median_reward": np.median(eval_reward_lst),
+            "median_measure_outcome": np.median(measure_result_lst),
+            "90th_percentile_reward" : np.percentile(eval_reward_lst, 90),
+            "90th_percentile_measure" : np.percentile(measure_result_lst, 90)
+        }
+        
+
+    @classmethod
     def train(
         cls,
         train_env: Execute_Environment,
@@ -580,19 +608,28 @@ class Reinforcement_DeepLearning:
                 
                 #Do the evaluation
                 if eval_env is not None:
-                    eval_reward, is_eval_complete = main.play(
-                        env=eval_env,
-                        max_step=max_steps_allowed,
-                        epsilon=min_epsilon,
-                        is_exploit_only=False
-                    )
                     eval_rewards_history.append(
-                        {
-                            "episode": episode,
-                            "eval_reward": eval_reward,
-                            "is_eval_complete": is_eval_complete
-                        }
+                        cls.do_eval(
+                            episode=episode,
+                            eval_env=eval_env,
+                            agent=main,
+                            max_step_allowed=max_steps_allowed,
+                            min_epsilon=min_epsilon
+                        )
                     )
+                    # eval_reward, is_eval_complete = main.play(
+                    #     env=eval_env,
+                    #     max_step=max_steps_allowed,
+                    #     epsilon=min_epsilon,
+                    #     is_exploit_only=False
+                    # )
+                    # eval_rewards_history.append(
+                    #     {
+                    #         "episode": episode,
+                    #         "eval_reward": eval_reward,
+                    #         "is_eval_complete": is_eval_complete
+                    #     }
+                    # )
                 main.save_agent(
                     path=f"{model_path}_{episode}",
                     episode=episode,
