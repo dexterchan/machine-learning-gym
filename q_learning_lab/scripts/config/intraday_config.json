@@ -103,6 +103,7 @@
                 { "units": 20, "activation": "relu" },
                 { "units": 10, "activation": "relu" }
             ],
+            "dnn_learning_rate": 0.001,
             "output_layer_struct": { "units": 3, "activation": "linear" }
         }
     }

@@ -47,6 +47,10 @@ class Data_Source(ABC):
     def all_episode_numbers(self) -> list[int]:
         pass
     
+    #Define abstract iterator
+    @abstractmethod
+    def __iter__(self) -> Data_Source:
+        pass
 
 class Data_Source_Enum(str, ):
     RANDOM = "RANDOM"
@@ -145,6 +149,9 @@ class Historical_File_Access_Data_Source(Data_Source):
     @property
     def all_episode_numbers(self) -> list[int]:
         return []
+    
+    def __iter__(self) -> Data_Source:
+        return self
 
 
 
@@ -159,9 +166,10 @@ class Random_File_Access_Data_Source(Data_Source):
         self.pick_episode = -1
         self.reset()
         self._cache = LRUCache(maxsize=100)
+        
         pass
     
-    def get_market_data_candles(self) -> pd.DataFrame:
+    def get_market_data_candles(self, remove_scenario:bool=True) -> pd.DataFrame:
         """ Randomly get market data candles from the pool
         Returns:
             Any: OHLCV data in panda form
@@ -171,7 +179,7 @@ class Random_File_Access_Data_Source(Data_Source):
         
         if self.data_id in self._cache:
             return self._cache[self.data_id]
-        _df = self.get_episode_data(self.pick_episode)
+        _df = self.get_episode_data(self.pick_episode, remove_scenario)
         
         self._cache[self.data_id ] = _df
         return _df
@@ -207,7 +215,7 @@ class Random_File_Access_Data_Source(Data_Source):
         """
         return self.df["scenario"].unique().tolist()
     
-    def get_episode_data(self, episode_id:int) -> pd.DataFrame:
+    def get_episode_data(self, episode_id:int, remove_scenario:bool=True) -> pd.DataFrame:
         """ Get episode data
         Args:
             episode_id (int): episode id
@@ -216,9 +224,17 @@ class Random_File_Access_Data_Source(Data_Source):
         """
         df = self.df[self.df["scenario"]==episode_id]
         #Exclude column "scenario"
-        df = df.drop(columns=["scenario"])
+        if remove_scenario:
+            df = df.drop(columns=["scenario"])
         return df
-        
+    
+    #create a iterator to iterate each episode
+    def __iter__(self) -> Data_Source:
+        self.pick_episode = 0
+        for e in (self.all_episode_numbers):
+            self.pick_episode = e
+            yield self
+        pass
 
     
     

@@ -130,6 +130,20 @@ test_local:
 	rm -Rf _static/model
 	pytest tests
 
+test_training_only: export PYTHONPATH=$(shell pwd)/src
+test_training_only: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
+test_training_only:
+	echo ${PYTHONPATH}
+	rm -Rf _static/model
+	pytest  tests/adapter/intraday_market/test_training.py
+
+test_training_only_local: export PYTHONPATH=$(shell pwd)/src
+test_training_only_local: export DATA_DIR=$(shell pwd)/data
+test_training_only_local:
+	echo ${PYTHONPATH}
+	rm -Rf _static/model
+	pytest  tests/adapter/intraday_market/test_training.py
+
 run_jupyter: export PYTHONPATH=$(shell pwd)/src
 run_jupyter: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
 run_jupyter:

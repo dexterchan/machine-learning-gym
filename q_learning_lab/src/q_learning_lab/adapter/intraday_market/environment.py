@@ -88,7 +88,10 @@ class FeatureRunner():
         #Cache feature
         self._feature_cache[self._data_source.data_id] = new_feature_output
         return new_feature_output
-        
+    
+    def _init_runner_state(self) -> None:
+        self._read_pointer = 0
+        self._feature_cache.clear()
 
     def reset(self, **kwargs) -> pd.DataFrame:
         """Reset the data source and return the market data candles
@@ -97,14 +100,17 @@ class FeatureRunner():
             pd.DataFrame: _description_
         """
         self._data_source.reset(kwargs=kwargs)
-        self._read_pointer = 0
-        self._feature_cache.clear()
+        self._init_runner_state()
         df:pd.DataFrame = self._data_source.get_market_data_candles()
         logger.debug(df)
         if len(df) == 0:
             raise Exception("Data not found from this datasouce")
         return df
-        
+    
+    def __iter__(self) -> FeatureRunner:
+        for _ in (self._data_source):
+            self._init_runner_state()
+            yield self
 
     def stateful_step(self, increment_step:bool=True) -> tuple[np.ndarray, datetime, bool]:
         """_summary_
@@ -165,6 +171,7 @@ class Intraday_Market_Environment(Interface_Environment):
         self._current_data:pd.DataFrame = None
         self._trade_order_agent:TradeBookKeeperAgent = None
         self._step_counter:int = 0
+        self._iterate_feature_mode_on:bool = False
         
     @classmethod
     def parse_command(cls, command: str) -> str:
@@ -313,7 +320,8 @@ class Intraday_Market_Environment(Interface_Environment):
 
     def reset(self, **kwargs) -> tuple[np.ndarray, Any]:
         # Return numpy array of (dim,1) in shape
-        self._feature_runner.reset(**kwargs)
+        if not self._iterate_feature_mode_on:
+            self._feature_runner.reset(**kwargs)
         observation, time_inx, _ = self._feature_runner.stateful_step(increment_step=False)
         logger.info("Reset environment, current time index: %s", time_inx)
         #Reset current data
@@ -329,6 +337,15 @@ class Intraday_Market_Environment(Interface_Environment):
         )
         self._step_counter = 0
         return observation, time_inx
+    
+    # iterate all feature runners
+    def __iter__(self) -> Intraday_Market_Environment:
+        self._iterate_feature_mode_on = True
+        _feature_runner_itr = iter(self._feature_runner)
+        for _runner in _feature_runner_itr:
+            self.register_feature_runner(_runner)
+            yield self
+
 
     def step(self, action: Intraday_Trade_Action_Space) -> tuple[np.ndarray, float, bool, bool, dict]:
         """step function

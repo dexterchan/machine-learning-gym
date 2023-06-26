@@ -10,6 +10,7 @@ from q_learning_lab.utility.logging import get_logger
 from q_learning_lab.adapter.intraday_market.data_input import Data_Source
 import pytest
 import json
+import pandas as pd
 
 from q_learning_lab.utility.tools import timeit
 from tests.adapter.intraday_market.test_environment import logger
@@ -107,3 +108,31 @@ def test_feature_runner(get_feature_schema, get_training_eval_test_data_source) 
     if train_feature.feature_data.shape == train_feature3.feature_data.shape:
         assert np.not_equal(train_feature.feature_data, train_feature3.feature_data).any()
     pass
+
+def test_iterate_feature_generator(get_feature_schema, get_training_eval_test_data_source) -> None:
+    train_data_source, eval_data_source = get_training_eval_test_data_source
+    train_runner:FeatureRunner = FeatureRunner(
+        data_source=train_data_source,
+        feature_generator_type="OHLCV",
+        feature_plan=get_feature_schema,
+    )
+    eval_runner:FeatureRunner = FeatureRunner(
+        data_source=eval_data_source,
+        feature_generator_type="OHLCV",
+        feature_plan=get_feature_schema,
+    )
+    eval_runner_itr = iter(eval_runner)
+    for cnt, _runner in enumerate(eval_runner_itr):
+        assert _runner._read_pointer == 0
+        candles:pd.DataFrame = _runner._data_source.get_market_data_candles(remove_scenario=False)
+        unique_episode_numbers = candles["scenario"].unique()
+        assert len(unique_episode_numbers) == 1
+        assert unique_episode_numbers[0] == int(_runner._data_source.data_id) == cnt
+        logger.info(_runner.data_dimension)
+        features:Feature_Output = _runner.calculate_features()
+        num_of_rows, col = features.feature_data.shape
+        assert num_of_rows > 0
+        assert col == _runner.feature_observation_space_dim, "feature dimension is not consistent with feature_observation_space_dim"
+        
+
+
