@@ -494,5 +494,5 @@ class Intraday_Market_Environment(Interface_Environment):
     
     @property
     def measure_result(self) -> float:
-        sharpe_ratio = self._trade_order_agent._calculate_sharpe_ratio()
+        sharpe_ratio = self._trade_order_agent.calculate_sharpe_ratio()
         return sharpe_ratio
