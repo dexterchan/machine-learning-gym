@@ -398,6 +398,8 @@ class Reinforcement_DeepLearning:
         #Summarize eval_result
         return {
             "episode": episode,
+            "10th_percentile_reward" : np.percentile(eval_reward_lst, 10),
+            "10th_percentile_measure" : np.percentile(measure_result_lst, 10),
             "median_reward": np.median(eval_reward_lst),
             "median_measure_outcome": np.median(measure_result_lst),
             "90th_percentile_reward" : np.percentile(eval_reward_lst, 90),
