@@ -103,10 +103,10 @@ def test_training_old(get_intraday_local_config):
             )
         pass
     #fork end here
-
-    fork_process_runner = ForkProcessRunner()
-    for i in range(n_episodes_batches):
-        fork_process_runner.fork_run(_fork_training_process)
+    _fork_training_process()
+    # fork_process_runner = ForkProcessRunner()
+    # for i in range(n_episodes_batches):
+    #     fork_process_runner.fork_run(_fork_training_process)
     #wait until all child process finish
 
     pass

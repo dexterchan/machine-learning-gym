@@ -13,7 +13,7 @@
         "end_date_ymd": "20230401",
         "data_length_days": 10,
         "data_step": 1,
-        "split_ratio": 0.9,
+        "split_ratio": 0.99,
         "output_data_dir": "/tmp/output/batch_run/$(RANDOM)",
         "candle_size_minutes": 15
     },

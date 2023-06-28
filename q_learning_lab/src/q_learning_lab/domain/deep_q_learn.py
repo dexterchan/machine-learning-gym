@@ -378,7 +378,7 @@ class Reinforcement_DeepLearning:
         return os.path.join(path_str, log_dir)
 
     @classmethod
-    def do_eval(cls, episode:int, eval_env:Execute_Environment, agent:DeepAgent, max_step_allowed:int, min_epsilon:float) -> dict:
+    def do_eval(cls, episode:int, eval_env:Execute_Environment, agent:DeepAgent, max_step_allowed:int, min_epsilon:float) -> tuple[dict, float]:
         eval_env_itr = iter(eval_env)
         #Iterate the eval env to run scenario
         _env:Execute_Environment = None
@@ -396,6 +396,7 @@ class Reinforcement_DeepLearning:
             measure_result_lst.append(_env.measure_result)
             pass
         #Summarize eval_result
+        measure_result = np.percentile(measure_result_lst, 10)
         return {
             "episode": episode,
             "10th_percentile_reward" : np.percentile(eval_reward_lst, 10),
@@ -404,7 +405,7 @@ class Reinforcement_DeepLearning:
             "median_measure_outcome": np.median(measure_result_lst),
             "90th_percentile_reward" : np.percentile(eval_reward_lst, 90),
             "90th_percentile_measure" : np.percentile(measure_result_lst, 90)
-        }
+        }, measure_result
         
 
     @classmethod
@@ -514,8 +515,9 @@ class Reinforcement_DeepLearning:
         total_episodes = train_env_params.total_episodes
         episode_batch = train_env_params.episode_batch
         max_steps_allowed = train_env_params.n_max_steps
-        best_reward:float = -float('inf')
-        
+        best_result:float = -float('inf')
+        measure_result:float = -float('inf')
+        worse_than_best_reward_count:int = 0
         end_iteration:int = min(total_episodes+1, episode + episode_batch) if train_env_params.batch_mode else total_episodes+1
 
         logger.info(f"Start training {model_name} model iteration {episode} to {end_iteration-1}")
@@ -607,31 +609,22 @@ class Reinforcement_DeepLearning:
             total_training_rewards_history.append(total_training_rewards)
             # Save the model every n episodes
             if episode % agent_params.save_agent_every_n_episode == 0:
-                
+                logger.info(f"Run the evaluation at episode {episode}")
                 #Do the evaluation
                 if eval_env is not None:
-                    eval_rewards_history.append(
-                        cls.do_eval(
+                    eval_result, measure_result = cls.do_eval(
                             episode=episode,
                             eval_env=eval_env,
                             agent=main,
                             max_step_allowed=max_steps_allowed,
                             min_epsilon=min_epsilon
                         )
+                    eval_rewards_history.append(
+                        eval_result
                     )
-                    # eval_reward, is_eval_complete = main.play(
-                    #     env=eval_env,
-                    #     max_step=max_steps_allowed,
-                    #     epsilon=min_epsilon,
-                    #     is_exploit_only=False
-                    # )
-                    # eval_rewards_history.append(
-                    #     {
-                    #         "episode": episode,
-                    #         "eval_reward": eval_reward,
-                    #         "is_eval_complete": is_eval_complete
-                    #     }
-                    # )
+                    
+
+                    
                 main.save_agent(
                     path=f"{model_path}_{episode}",
                     episode=episode,
@@ -649,8 +642,9 @@ class Reinforcement_DeepLearning:
 
             #4. check best reward
             if save_best_only:
-                if best_reward < total_training_rewards:
-                    best_reward = total_training_rewards
+                if best_result < measure_result:
+                    logger.info(f"Save best result at episode {episode}")
+                    best_result = measure_result
                     worse_than_best_reward_count = 0
                     #update the best reward model
                     main.save_agent(
