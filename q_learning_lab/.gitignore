@@ -107,3 +107,4 @@ static*.tgz
 .idea/
 _static/
 data/
+.secret
