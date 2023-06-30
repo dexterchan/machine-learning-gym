@@ -75,6 +75,7 @@ class DeepAgent:
     def save_agent(
         self, path: str, episode: int, 
         epsilon: float, 
+        best_measure: float,
         total_rewards_history: list[float],
         eval_rewards_history: list[dict]
     ) -> None:
@@ -86,6 +87,7 @@ class DeepAgent:
         Args:
             path (str): file path
             episode (int): last episode
+            best_measure (float): best measure from evaluation
             epsilon (float): last epsilon
             total_rewards_history (list[float]): total rewards history
             eval_rewards_history (list[dict]): evaluation rewards history
@@ -96,6 +98,7 @@ class DeepAgent:
         model_dict: dict = {
             "episode": episode,
             "learning_rate": self.learning_rate,
+            "best_measure": best_measure,
             "discounting_factor": self.discounting_factor,
             "epsilon": epsilon,
             "total_rewards_history": total_rewards_history,
@@ -341,15 +344,16 @@ class Reinforcement_DeepLearning:
             model_path (str): model path
             
         Returns:
-            tuple[DeepAgent, int, float, list[float] ]: agent, last episode, last epsilon, total_rewards_history, last_eval_rewards_history
+            tuple[DeepAgent, int, float, list[float] ]: agent, last episode, last epsilon, best_measure, total_rewards_history, last_eval_rewards_history
         """
         cloned_agent, last_run_para = DeepAgent.load_agent(path=model_path)
         episode = last_run_para["episode"]
         epsilon = last_run_para["epsilon"]
         total_rewards_history = last_run_para["total_rewards_history"]
         last_eval_rewards_history = last_run_para["eval_rewards_history"]
+        best_measure = last_run_para["best_measure"]
 
-        return cloned_agent, episode, epsilon, total_rewards_history, last_eval_rewards_history
+        return cloned_agent, episode, epsilon, best_measure, total_rewards_history, last_eval_rewards_history
 
     @staticmethod
     def check_agent_reloadable(model_path:str) -> bool:
@@ -468,17 +472,18 @@ class Reinforcement_DeepLearning:
         episode:int = 1
         total_training_rewards_history = []
         eval_rewards_history = []
+        best_measure:float = -float('inf')
         
         if isinstance(dnn_structure, str):
             # Overwriting episode and epsilon here after loading mode
             #Load the model from a file directory in dnn_structure
             
             logger.info(f"Load existing {model_name} model from {dnn_structure}")
-            main, _episode, _epsilon, _reward_history, _eval_history = Reinforcement_DeepLearning.load_existing_agent(
+            main, _episode, _epsilon, best_measure, _reward_history, _eval_history = Reinforcement_DeepLearning.load_existing_agent(
                 model_path=dnn_structure
             )
 
-            target, _, _, _ ,_ = Reinforcement_DeepLearning.load_existing_agent(
+            target, _, _, _, _ ,_ = Reinforcement_DeepLearning.load_existing_agent(
                 model_path=dnn_structure
             )
             logger.info(
@@ -515,7 +520,7 @@ class Reinforcement_DeepLearning:
         total_episodes = train_env_params.total_episodes
         episode_batch = train_env_params.episode_batch
         max_steps_allowed = train_env_params.n_max_steps
-        best_result:float = -float('inf')
+        
         measure_result:float = -float('inf')
         worse_than_best_reward_count:int = 0
         end_iteration:int = min(total_episodes+1, episode + episode_batch) if train_env_params.batch_mode else total_episodes+1
@@ -629,6 +634,7 @@ class Reinforcement_DeepLearning:
                     path=f"{model_path}_{episode}",
                     episode=episode,
                     epsilon=epsilon,
+                    best_measure=best_measure,
                     total_rewards_history=total_training_rewards_history,
                     eval_rewards_history=eval_rewards_history
                 )
@@ -636,21 +642,23 @@ class Reinforcement_DeepLearning:
                     path=f"{model_path}_latest",
                     episode=episode,
                     epsilon=epsilon,
+                    best_measure=best_measure,
                     total_rewards_history=total_training_rewards_history,
                     eval_rewards_history=eval_rewards_history
                 )
 
             #4. check best reward
             if save_best_only:
-                if best_result < measure_result:
+                if best_measure < measure_result:
                     logger.info(f"Save best result at episode {episode}")
-                    best_result = measure_result
+                    best_measure = measure_result
                     worse_than_best_reward_count = 0
                     #update the best reward model
                     main.save_agent(
                         path=f"{model_path}_best",
                         episode=episode,
                         epsilon=epsilon,
+                        best_measure=best_measure,
                         total_rewards_history=total_training_rewards_history,
                         eval_rewards_history=eval_rewards_history
                     )
@@ -666,6 +674,7 @@ class Reinforcement_DeepLearning:
                 "main": main, 
                 "episode": episode, 
                 "epsilon": epsilon, 
+                "best_measure": best_measure,
                 "total_rewards_history": total_training_rewards_history,
                 "eval_rewards_history": eval_rewards_history
                 }
