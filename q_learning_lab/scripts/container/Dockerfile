@@ -1,7 +1,7 @@
 ARG RUN_DIR="/var/task"
 ARG RUN_USER="appuser"
-ARG CONDA_VERSION="39_4.12.0"
-ARG CONTAINER_VERSION="3.9.16-slim"
+ARG CONDA_VERSION="39_23.3.1-0"
+ARG CONTAINER_VERSION="3.9-slim-bullseye"
 
 
 FROM python:${CONTAINER_VERSION} as base
@@ -11,9 +11,7 @@ ARG CONDA_VERSION
 ARG ARCH
 
 ENV APPUSER=${RUN_USER}
-ENV MINICONDA_SCRIPT="Miniconda3-py${CONDA_VERSION}-Linux-${ARCH}.sh"
-#https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-aarch64.sh
-# Alpine update
+
 RUN apt-get update -y && \
     apt-get upgrade -y 
 
@@ -24,7 +22,16 @@ RUN groupadd --system --gid=9999  ${APPUSER} && \
 # Debian python install pip
 RUN apt-get install -y python3-pip 
 
+FROM base as conda_install
+ARG RUN_DIR
+ARG RUN_USER
+ARG CONDA_VERSION
+ARG ARCH
+ENV MINICONDA_SCRIPT="Miniconda3-py${CONDA_VERSION}-Linux-${ARCH}.sh"
+
 # Install miniconda
+#https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-aarch64.sh
+#https://repo.anaconda.com/miniconda/Miniconda3-py39_23.3.1-0-Linux-x86_64.sh
 ENV CONDA_DIR=/var/conda
 RUN mkdir -p $CONDA_DIR && \
     apt-get install -y wget && \
@@ -35,17 +42,18 @@ RUN mkdir -p $CONDA_DIR && \
 
 ENV PATH=$CONDA_DIR/miniconda/bin:$PATH
 ENV LD_LIBRARY_PATH=$CONDA_DIR/miniconda/lib:$LD_LIBRARY_PATH
-RUN eval "$(conda shell.bash hook)" && \
-    chmod 755 $CONDA_DIR && \
-    chown -R ${APPUSER}:${APPUSER} $CONDA_DIR && \
-    conda init
+RUN chown -R ${APPUSER}:${APPUSER} $CONDA_DIR
+# RUN eval "$(conda shell.bash hook)" && \
+#     chmod 755 $CONDA_DIR && \
+#     chown -R ${APPUSER}:${APPUSER} $CONDA_DIR && \
+#     conda init
 RUN chown -R ${APPUSER}:${APPUSER} $RUN_DIR
 
 USER ${APPUSER}
 RUN conda config --add channels conda-forge
 RUN conda install mamba -c conda-forge -y
 
-FROM base as install
+FROM conda_install as install
 ARG RUN_DIR
 ARG RUN_USER
 ARG ARCH
@@ -57,17 +65,19 @@ COPY --chown=${RUN_USER}:${RUN_USER} scripts/.secret/conda_credential /tmp/conda
 
 # Install requirements
 RUN conda config --add channels $(cat /tmp/conda_credential)
-#RUN mamba install -y --file requirements-linux-${ARCH}.txt
+RUN mamba install -y --file requirements-linux-${ARCH}.txt
 
 
-FROM install as dev
+FROM base as dev
 ARG RUN_DIR
 ARG RUN_USER
 ARG ARCH
+ENV CONDA_DIR=/var/conda
+ENV PATH=$CONDA_DIR/miniconda/bin:$PATH
+ENV LD_LIBRARY_PATH=$CONDA_DIR/miniconda/lib:$LD_LIBRARY_PATH
 
-#COPY src/q_learning_lab module into workdir
+#COPY --chown=${RUN_USER}:${RUN_USER} --from=install ${CONDA_DIR} ${CONDA_DIR}
 COPY --chown=${RUN_USER}:${RUN_USER} src/q_learning_lab ${RUN_DIR}/q_learning_lab
-#COPY sample config into workdir
 COPY --chown=${RUN_USER}:${RUN_USER} scripts/config/*.* ${RUN_DIR}/config/samples/
 ENV PYTHONPATH="${PYTHONPATH}:${RUN_DIR}"
 RUN mkdir -p ${RUN_DIR}/workspaces
