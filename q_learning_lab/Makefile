@@ -156,3 +156,15 @@ run_jupyter_local:
 	jupyter lab --allow-root
 	#jupyter notebook --notebook-dir=notebooks
 
+training_container:
+	mkdir -p /tmp/output/log
+	mkdir -p /tmp/output/batch_run/
+	docker run -it --rm -v ~/sandbox/algo_trading/crypto_market_data/data:/var/task/data \
+			-v $(pwd)/scripts:/var/task/workspaces/scripts \
+			-v $(pwd)/_static:/var/task/workspaces/_static \
+			-v /tmp/output/log:/var/task/workspaces/log \
+			-v /tmp/output/batch_run/:/tmp/output/batch_run \
+			-e LOG_FILE=/var/task/workspaces/log/info.log \
+			-e DATA_DIR=/var/task/data \
+			pigpiggcp/q_learning:0.1.0-bullseye-x86_64 \
+			python3 -m q_learning_lab -b intraday-market-v0 -c scripts/config/intraday_config.json -i local_intraday
