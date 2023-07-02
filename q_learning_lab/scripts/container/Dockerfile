@@ -57,14 +57,15 @@ FROM conda_install as install
 ARG RUN_DIR
 ARG RUN_USER
 ARG ARCH
+ARG PRIVATE_CONDA_CHANNEL
 
 WORKDIR $RUN_DIR
 # COPY requirements.txt and modify to RUN_USER as owner
 COPY --chown=${RUN_USER}:${RUN_USER} requirements-linux-${ARCH}.txt ${RUN_DIR}/requirements-linux-${ARCH}.txt
-COPY --chown=${RUN_USER}:${RUN_USER} scripts/.secret/conda_credential /tmp/conda_credential
+#COPY --chown=${RUN_USER}:${RUN_USER} scripts/.secret/conda_credential /tmp/conda_credential
 
 # Install requirements
-RUN conda config --add channels $(cat /tmp/conda_credential)
+RUN conda config --add channels ${PRIVATE_CONDA_CHANNEL}
 #reference https://uwekorn.com/2021/03/01/deploying-conda-environments-in-docker-how-to-do-it-right.html
 RUN mamba create --copy -p $CONDA_DIR/env --file requirements-linux-${ARCH}.txt && conda clean -afy
 
