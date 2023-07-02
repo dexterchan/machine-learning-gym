@@ -1,7 +1,10 @@
 #!/bin/bash
 ARCH=$(uname -m)
 VERSION=0.1.0
+if [ -z "$PRIVATE_CONDA_CHANNEL" ]; then
 PRIVATE_CONDA_CHANNEL=$(cat scripts/.secret/conda_credential)
+fi
+
 SUFFIX=${VERSION}-bullseye-$ARCH
 #Docker build with argument ARCH
 echo Building with $ARCH
