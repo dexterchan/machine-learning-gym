@@ -68,9 +68,10 @@ RUN conda config --add channels $(cat /tmp/conda_credential)
 #reference https://uwekorn.com/2021/03/01/deploying-conda-environments-in-docker-how-to-do-it-right.html
 RUN mamba create --copy -p $CONDA_DIR/env --file requirements-linux-${ARCH}.txt && conda clean -afy
 
+FROM base as s3fs
+RUN apt -y install s3fs
 
-
-FROM base as dev
+FROM s3fs as dev
 ARG RUN_DIR
 ARG RUN_USER
 ARG ARCH
@@ -81,6 +82,7 @@ ENV LD_LIBRARY_PATH=$CONDA_DIR/env/lib:$LD_LIBRARY_PATH
 COPY --chown=${RUN_USER}:${RUN_USER} --from=install ${CONDA_DIR}/env ${CONDA_DIR}/env
 COPY --chown=${RUN_USER}:${RUN_USER} src/q_learning_lab ${RUN_DIR}/q_learning_lab
 COPY --chown=${RUN_USER}:${RUN_USER} scripts/config/*.* ${RUN_DIR}/config/samples/
+COPY --chown=${RUN_USER}:${RUN_USER} scripts/container/mount_s3fs.sh ${RUN_DIR}/mount_s3fs.sh
 ENV PYTHONPATH="${PYTHONPATH}:${RUN_DIR}"
 RUN mkdir -p ${RUN_DIR}/workspaces
 WORKDIR ${RUN_DIR}/workspaces
