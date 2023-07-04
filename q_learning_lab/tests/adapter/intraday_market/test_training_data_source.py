@@ -126,8 +126,13 @@ def test_random_data(get_TrainingDataBundleParameter) -> None:
     assert end_date != df3.index[-1]
     assert abs((df3.index[-1]-df3.index[0]).days - bundle_param.data_length_days) <= 1
 
-    
-    assert len(training_data_source.all_episode_numbers) > len(eval_data_source.all_episode_numbers) > 0
+    split_ratio:float = bundle_param.split_ratio
+    training_data_source_population = len(training_data_source.all_episode_numbers)
+    eval_data_source_population = len(eval_data_source.all_episode_numbers)
+    assert training_data_source_population > eval_data_source_population > 0
+    actual_ratio:float = float(training_data_source_population)/(training_data_source_population+eval_data_source_population)
+    assert abs(actual_ratio - split_ratio) < 0.05
+
 
 def test_iterate_data_source(get_TrainingDataBundleParameter) -> None:
     """Testing iteration of data source
