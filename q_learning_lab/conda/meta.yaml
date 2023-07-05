@@ -1,6 +1,6 @@
 package:
   name: "q_learning_lab"
-  version: '0.1.0'
+  version: '0.1.1'
 about:
   summary: "This is deep q learning lab Python library"
 source:

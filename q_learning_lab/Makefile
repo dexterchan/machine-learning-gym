@@ -168,3 +168,12 @@ training_container:
 			-e DATA_DIR=/var/task/data \
 			pigpiggcp/q_learning:0.1.0-bullseye-x86_64 \
 			python3 -m q_learning_lab -b intraday-market-v0 -c scripts/config/intraday_config.json -i local_intraday
+
+bump_version_patch:
+	bump2version patch --allow-dirty
+
+bump_version_minor:
+	bump2version minor --allow-dirty 
+
+bump_version_major:
+	bump2version major --allow-dirty 
