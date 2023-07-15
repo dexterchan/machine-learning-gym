@@ -126,6 +126,33 @@ def test_random_data(get_TrainingDataBundleParameter) -> None:
     assert end_date != df3.index[-1]
     assert abs((df3.index[-1]-df3.index[0]).days - bundle_param.data_length_days) <= 1
 
-    
-    assert len(training_data_source.all_episode_numbers) > len(eval_data_source.all_episode_numbers) > 0
+    split_ratio:float = bundle_param.split_ratio
+    training_data_source_population = len(training_data_source.all_episode_numbers)
+    eval_data_source_population = len(eval_data_source.all_episode_numbers)
+    assert training_data_source_population > eval_data_source_population > 0
+    actual_ratio:float = float(training_data_source_population)/(training_data_source_population+eval_data_source_population)
+    assert abs(actual_ratio - split_ratio) < 0.05
 
+
+def test_iterate_data_source(get_TrainingDataBundleParameter) -> None:
+    """Testing iteration of data source
+    """
+    training_data_source, eval_data_source = File_Data_Source_Factory.prepare_training_eval_data_source(
+        bundle_para=get_TrainingDataBundleParameter
+    )
+
+    episode_numbers:list[int] = training_data_source.all_episode_numbers
+    assert len(episode_numbers) > 2
+
+    #Iterate data source
+    for inx, data_source in enumerate(training_data_source):
+        expected_episode_number:int = episode_numbers[inx]
+        assert isinstance(data_source, Random_File_Access_Data_Source)
+        candles:pd.DataFrame = data_source.get_market_data_candles(remove_scenario=False)
+        unique_episode_numbers = candles["scenario"].unique()
+        assert len(unique_episode_numbers) == 1
+        logger.debug(f"episode_number: {expected_episode_number}, candles: {unique_episode_numbers[0]}")
+        assert unique_episode_numbers[0] == expected_episode_number
+        
+
+        

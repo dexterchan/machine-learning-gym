@@ -9,8 +9,8 @@
         "exchange": "kraken",
         "symbol": "ETHUSD",
         "input_data_dir": "${DATA_DIR}",
-        "start_date_ymd": "20230301",
-        "end_date_ymd": "20230401",
+        "start_date_ymd": "20200101",
+        "end_date_ymd": "20230701",
         "data_length_days": 10,
         "data_step": 1,
         "split_ratio": 0.9,
@@ -60,14 +60,19 @@
     },
     "agent": {
         "learning_rate": 0.001,
-        "gamma": 0.618,
+        "gamma": 0.9,
         "epsilon": 0.1,
         "savefig_folder": "_static/img/test/",
         "savemodel_folder": "_static/model/test/",
         "start_epsilon": 1.0,
         "min_epsilon": 0.05,
         "decay_rate": 0.001,
-        "save_best_only": true
+        "save_best_only": true,
+        "save_agent_every_n_episode": 10,
+        "every_n_steps_to_train_main_model": 100,
+        "every_m_steps_to_copy_main_weights_to_target_model": 300,
+        "validation_split": 0.2,
+        "dnn_training_epoch": 10
     },
     "pnl_config": {
         "roi": {
@@ -79,7 +84,7 @@
         "stoploss": -0.02,
         "fixed_unit_amount": 10,
         "enable_short_position": false,
-        "max_position_per_symbol": 1,
+        "max_position_per_symbol": 100,
         "fee_rate": 0.0026,
         "laid_back_tax": 0.000002
     },
@@ -94,8 +99,11 @@
             "mid_layers_struct": [
                 { "units": 30, "activation": "relu" },
                 { "units": 20, "activation": "relu" },
+                { "units": 20, "activation": "relu" },
+                { "units": 20, "activation": "relu" },
                 { "units": 10, "activation": "relu" }
             ],
+            "dnn_learning_rate": 0.001,
             "output_layer_struct": { "units": 3, "activation": "linear" }
         }
     }

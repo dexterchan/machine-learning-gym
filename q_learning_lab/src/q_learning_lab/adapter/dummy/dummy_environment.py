@@ -88,3 +88,10 @@ class Dummy_Environment(Interface_Environment):
             tuple[int]: dimension of the observation space
         """
         return (self._observation_space_dim,)
+
+    @property
+    def measure_result(self) -> float:
+        return 0
+    
+    def __iter__(self):
+        yield self

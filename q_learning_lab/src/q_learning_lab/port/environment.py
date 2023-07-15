@@ -63,6 +63,13 @@ class Execute_Environment:
     @env_params.setter
     def env_params(self, value: Any) -> None:
         self._env_params = value
+    
+    @property
+    def measure_result(self) -> float:
+        return 0
+    
+    def __iter__(self):
+        yield self
 
 
 def create_execute_environment(arena: str, params: dict) -> Execute_Environment:

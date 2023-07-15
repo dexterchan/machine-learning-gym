@@ -116,6 +116,7 @@ dummy_run:
 
 test: export PYTHONPATH=$(shell pwd)/src
 test: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
+test: export CI=true
 test:
 	echo ${PYTHONPATH}
 	rm -Rf _static/model
@@ -123,10 +124,25 @@ test:
 
 test_local: export PYTHONPATH=$(shell pwd)/src
 test_local: export DATA_DIR=$(shell pwd)/data
+test_local: export CI=true
 test_local:
 	echo ${PYTHONPATH}
 	rm -Rf _static/model
 	pytest tests
+
+test_training_only: export PYTHONPATH=$(shell pwd)/src
+test_training_only: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
+test_training_only:
+	echo ${PYTHONPATH}
+	rm -Rf _static/model
+	pytest  tests/adapter/intraday_market/test_training.py
+
+test_training_only_local: export PYTHONPATH=$(shell pwd)/src
+test_training_only_local: export DATA_DIR=$(shell pwd)/data
+test_training_only_local:
+	echo ${PYTHONPATH}
+	rm -Rf _static/model
+	pytest  tests/adapter/intraday_market/test_training.py
 
 run_jupyter: export PYTHONPATH=$(shell pwd)/src
 run_jupyter: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
@@ -134,3 +150,30 @@ run_jupyter:
 	jupyter lab
 	#jupyter notebook --notebook-dir=notebooks
 
+run_jupyter_local: export PYTHONPATH=$(shell pwd)/src
+run_jupyter_local: export DATA_DIR=$(shell pwd)/data
+run_jupyter_local:
+	jupyter lab --allow-root
+	#jupyter notebook --notebook-dir=notebooks
+
+training_container:
+	mkdir -p /tmp/output/log
+	mkdir -p /tmp/output/batch_run/
+	docker run -it --rm -v ~/sandbox/algo_trading/crypto_market_data/data:/var/task/data \
+			-v $(pwd)/scripts:/var/task/workspaces/scripts \
+			-v $(pwd)/_static:/var/task/workspaces/_static \
+			-v /tmp/output/log:/var/task/workspaces/log \
+			-v /tmp/output/batch_run/:/tmp/output/batch_run \
+			-e LOG_FILE=/var/task/workspaces/log/info.log \
+			-e DATA_DIR=/var/task/data \
+			pigpiggcp/q_learning:0.1.0-bullseye-x86_64 \
+			python3 -m q_learning_lab -b intraday-market-v0 -c scripts/config/intraday_config.json -i local_intraday
+
+bump_version_patch:
+	bump2version patch --allow-dirty
+
+bump_version_minor:
+	bump2version minor --allow-dirty 
+
+bump_version_major:
+	bump2version major --allow-dirty 

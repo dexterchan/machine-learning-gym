@@ -169,12 +169,13 @@ class TestDeepQLearning(unittest.TestCase):
                 path=model_path,
                     episode=1,
                     epsilon=1,
+                    best_measure=0,
                     total_rewards_history=[1],
                     eval_rewards_history=[])
         
         #test load agent
         cloned_agent, last_run_para = DeepAgent.load_agent(path=model_path)
-        cloned_agent2, last_episode, last_epsilon, _reward_history, _ = Reinforcement_DeepLearning.load_existing_agent(
+        cloned_agent2, last_episode, last_epsilon, _last_best_measure, _reward_history, _ = Reinforcement_DeepLearning.load_existing_agent(
             model_path=model_path
         )
         
@@ -258,7 +259,7 @@ class TestDeepQLearning(unittest.TestCase):
         new_params_dict["save_best_only"] = False
         new_params = Agent_Params(**new_params_dict)
 
-
+        logger.critical(f"{type(eval_env)}")
         #train again should be stopped
         deepagent_dict = Reinforcement_DeepLearning.train(
             train_env=train_env,
@@ -279,6 +280,7 @@ class TestDeepQLearning(unittest.TestCase):
             path=model_path,
             episode=deepagent_dict["episode"],
             epsilon=deepagent_dict["epsilon"],
+            best_measure=deepagent_dict["best_measure"],
             total_rewards_history=deepagent_dict["total_rewards_history"],
             eval_rewards_history=deepagent_dict["eval_rewards_history"],
         )
@@ -297,13 +299,12 @@ class TestDeepQLearning(unittest.TestCase):
         )
         assert deepagent_dict_2 is not None
         assert deepagent_dict_2["main"] is not None
-        #assert deepagent_dict_2["episode"] == self.env_params.total_episodes
-        #assert abs(deepagent_dict_2["epsilon"] -  deepagent_dict["epsilon"]) < 0.0001
-        #assert abs(len(deepagent_dict_2["total_rewards_history"]) -self.env_params.total_episodes)<=1
+
         deepagent_dict_2["main"].save_agent(
             path=model_path,
             episode=deepagent_dict_2["episode"],
             epsilon=deepagent_dict_2["epsilon"],
+            best_measure=deepagent_dict_2["best_measure"],
             total_rewards_history=deepagent_dict_2["total_rewards_history"],
             eval_rewards_history=deepagent_dict_2["eval_rewards_history"],
         )

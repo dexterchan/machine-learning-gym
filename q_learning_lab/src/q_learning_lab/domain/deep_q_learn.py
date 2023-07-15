@@ -4,6 +4,7 @@ from ..port.environment import Execute_Environment
 import random
 import tensorflow as tf
 import tensorflow.keras.initializers as kernel_initializer
+from datetime import datetime
 from tensorflow import keras
 from keras.losses import LossFunctionWrapper
 from keras.optimizers import Optimizer
@@ -74,6 +75,7 @@ class DeepAgent:
     def save_agent(
         self, path: str, episode: int, 
         epsilon: float, 
+        best_measure: float,
         total_rewards_history: list[float],
         eval_rewards_history: list[dict]
     ) -> None:
@@ -85,6 +87,7 @@ class DeepAgent:
         Args:
             path (str): file path
             episode (int): last episode
+            best_measure (float): best measure from evaluation
             epsilon (float): last epsilon
             total_rewards_history (list[float]): total rewards history
             eval_rewards_history (list[dict]): evaluation rewards history
@@ -95,6 +98,7 @@ class DeepAgent:
         model_dict: dict = {
             "episode": episode,
             "learning_rate": self.learning_rate,
+            "best_measure": best_measure,
             "discounting_factor": self.discounting_factor,
             "epsilon": epsilon,
             "total_rewards_history": total_rewards_history,
@@ -178,13 +182,16 @@ class DeepAgent:
                 kernel_initializer=structure.initializer,
             )
         )
-        for layer in structure.process_layers:
+        for i, layer in enumerate(structure.process_layers):
             model.add(
                 keras.layers.Dense(
                     units=layer.units,
                     activation=layer.activation,
                     kernel_initializer=structure.initializer,
                 )
+            )
+            model.add(
+                keras.layers.Dropout(0.2, name=f'layers_{i}_dropout'),
             )
         model.compile(
             loss=structure.loss_function,
@@ -337,15 +344,16 @@ class Reinforcement_DeepLearning:
             model_path (str): model path
             
         Returns:
-            tuple[DeepAgent, int, float, list[float] ]: agent, last episode, last epsilon, total_rewards_history, last_eval_rewards_history
+            tuple[DeepAgent, int, float, list[float] ]: agent, last episode, last epsilon, best_measure, total_rewards_history, last_eval_rewards_history
         """
         cloned_agent, last_run_para = DeepAgent.load_agent(path=model_path)
         episode = last_run_para["episode"]
         epsilon = last_run_para["epsilon"]
         total_rewards_history = last_run_para["total_rewards_history"]
         last_eval_rewards_history = last_run_para["eval_rewards_history"]
+        best_measure = last_run_para["best_measure"]
 
-        return cloned_agent, episode, epsilon, total_rewards_history, last_eval_rewards_history
+        return cloned_agent, episode, epsilon, best_measure, total_rewards_history, last_eval_rewards_history
 
     @staticmethod
     def check_agent_reloadable(model_path:str) -> bool:
@@ -358,14 +366,55 @@ class Reinforcement_DeepLearning:
         """
         return DeepAgent.check_agent_loadable_from_path(path=model_path)
 
-    @staticmethod
-    def create_model_path_root(agent_params:Agent_Params, model_name:str, run_id:str) -> str:
+    @classmethod
+    def create_model_path_root(cls, agent_params:Agent_Params, model_name:str, run_id:str) -> str:
         return os.path.join(
             agent_params.savemodel_folder, run_id, model_name
         )
+    
+    @classmethod
+    def create_model_path_fit_log_dir(cls, agent_params:Agent_Params, model_name:str, run_id:str, episode:int) -> str:
+        path_str:str = cls.create_model_path_root(
+            agent_params=agent_params, model_name=model_name, run_id=run_id
+        )
+        log_dir = f'logs/fit/epoch{episode}-{datetime.now().strftime("%Y%m%d-%H%M%S")}'
 
-    @staticmethod
+        return os.path.join(path_str, log_dir)
+
+    @classmethod
+    def do_eval(cls, episode:int, eval_env:Execute_Environment, agent:DeepAgent, max_step_allowed:int, min_epsilon:float) -> tuple[dict, float]:
+        eval_env_itr = iter(eval_env)
+        #Iterate the eval env to run scenario
+        _env:Execute_Environment = None
+        eval_reward_lst = []
+        measure_result_lst = []
+        for _env in eval_env_itr:
+            eval_reward, _ = agent.play(
+                env=_env,
+                max_step=max_step_allowed,
+                epsilon=min_epsilon,
+                is_exploit_only=False
+            )
+            eval_reward_lst.append(eval_reward)
+            #calcualte sharpe ratio
+            measure_result_lst.append(_env.measure_result)
+            pass
+        #Summarize eval_result
+        measure_result = np.percentile(measure_result_lst, 10)
+        return {
+            "episode": episode,
+            "10th_percentile_reward" : np.percentile(eval_reward_lst, 10),
+            "10th_percentile_measure" : np.percentile(measure_result_lst, 10),
+            "median_reward": np.median(eval_reward_lst),
+            "median_measure_outcome": np.median(measure_result_lst),
+            "90th_percentile_reward" : np.percentile(eval_reward_lst, 90),
+            "90th_percentile_measure" : np.percentile(measure_result_lst, 90)
+        }, measure_result
+        
+
+    @classmethod
     def train(
+        cls,
         train_env: Execute_Environment,
         agent_params: Agent_Params,
         train_env_params: BaseEnv_Params,
@@ -423,17 +472,18 @@ class Reinforcement_DeepLearning:
         episode:int = 1
         total_training_rewards_history = []
         eval_rewards_history = []
+        best_measure:float = -float('inf')
         
         if isinstance(dnn_structure, str):
             # Overwriting episode and epsilon here after loading mode
             #Load the model from a file directory in dnn_structure
             
             logger.info(f"Load existing {model_name} model from {dnn_structure}")
-            main, _episode, _epsilon, _reward_history, _eval_history = Reinforcement_DeepLearning.load_existing_agent(
+            main, _episode, _epsilon, best_measure, _reward_history, _eval_history = Reinforcement_DeepLearning.load_existing_agent(
                 model_path=dnn_structure
             )
 
-            target, _, _, _ ,_ = Reinforcement_DeepLearning.load_existing_agent(
+            target, _, _, _, _ ,_ = Reinforcement_DeepLearning.load_existing_agent(
                 model_path=dnn_structure
             )
             logger.info(
@@ -470,8 +520,9 @@ class Reinforcement_DeepLearning:
         total_episodes = train_env_params.total_episodes
         episode_batch = train_env_params.episode_batch
         max_steps_allowed = train_env_params.n_max_steps
-        best_reward:float = -float('inf')
         
+        measure_result:float = -float('inf')
+        worse_than_best_reward_count:int = 0
         end_iteration:int = min(total_episodes+1, episode + episode_batch) if train_env_params.batch_mode else total_episodes+1
 
         logger.info(f"Start training {model_name} model iteration {episode} to {end_iteration-1}")
@@ -515,6 +566,15 @@ class Reinforcement_DeepLearning:
                     ):
                         # sample a minibatch from the replay memory
                         mini_batch = random.sample(replay_memory_list, train_batch_size)
+
+
+                        training_fig_log:str = (cls.create_model_path_fit_log_dir(
+                            agent_params=agent_params,
+                            model_name=model_name,
+                            run_id=run_id,
+                            episode=episode
+                        ) if episode % agent_params.save_agent_every_n_episode == 0 else None)
+
                         main = Reinforcement_DeepLearning._train_main_model(
                             main=main,
                             target=target,
@@ -527,6 +587,9 @@ class Reinforcement_DeepLearning:
                             ),
                             learning_rate=learning_rate,
                             discount_factor=discount_factor,
+                            training_fit_log=training_fig_log,
+                            validation_split=agent_params.validation_split,
+                            training_epoch=agent_params.dnn_training_epoch
                         )
                 state = next_state
                 total_training_rewards += reward
@@ -551,26 +614,27 @@ class Reinforcement_DeepLearning:
             total_training_rewards_history.append(total_training_rewards)
             # Save the model every n episodes
             if episode % agent_params.save_agent_every_n_episode == 0:
-                
+                logger.info(f"Run the evaluation at episode {episode}")
                 #Do the evaluation
                 if eval_env is not None:
-                    eval_reward, is_eval_complete = main.play(
-                        env=eval_env,
-                        max_step=max_steps_allowed,
-                        epsilon=min_epsilon,
-                        is_exploit_only=False
-                    )
+                    eval_result, measure_result = cls.do_eval(
+                            episode=episode,
+                            eval_env=eval_env,
+                            agent=main,
+                            max_step_allowed=max_steps_allowed,
+                            min_epsilon=min_epsilon
+                        )
                     eval_rewards_history.append(
-                        {
-                            "episode": episode,
-                            "eval_reward": eval_reward,
-                            "is_eval_complete": is_eval_complete
-                        }
+                        eval_result
                     )
+                    
+
+                    
                 main.save_agent(
                     path=f"{model_path}_{episode}",
                     episode=episode,
                     epsilon=epsilon,
+                    best_measure=best_measure,
                     total_rewards_history=total_training_rewards_history,
                     eval_rewards_history=eval_rewards_history
                 )
@@ -578,20 +642,23 @@ class Reinforcement_DeepLearning:
                     path=f"{model_path}_latest",
                     episode=episode,
                     epsilon=epsilon,
+                    best_measure=best_measure,
                     total_rewards_history=total_training_rewards_history,
                     eval_rewards_history=eval_rewards_history
                 )
 
             #4. check best reward
             if save_best_only:
-                if best_reward < total_training_rewards:
-                    best_reward = total_training_rewards
+                if best_measure < measure_result:
+                    logger.info(f"Save best result at episode {episode}")
+                    best_measure = measure_result
                     worse_than_best_reward_count = 0
                     #update the best reward model
                     main.save_agent(
                         path=f"{model_path}_best",
                         episode=episode,
                         epsilon=epsilon,
+                        best_measure=best_measure,
                         total_rewards_history=total_training_rewards_history,
                         eval_rewards_history=eval_rewards_history
                     )
@@ -607,12 +674,14 @@ class Reinforcement_DeepLearning:
                 "main": main, 
                 "episode": episode, 
                 "epsilon": epsilon, 
+                "best_measure": best_measure,
                 "total_rewards_history": total_training_rewards_history,
                 "eval_rewards_history": eval_rewards_history
                 }
 
-    @staticmethod
+    @classmethod
     def _train_main_model(
+        cls,
         main: DeepAgent,
         target: DeepAgent,
         mini_batch: list[list],
@@ -620,6 +689,9 @@ class Reinforcement_DeepLearning:
         next_states: np.array,
         learning_rate: float,
         discount_factor: float,
+        validation_split:float = 0,
+        training_epoch:int = 10,
+        training_fit_log:str = None
     ) -> DeepAgent:
         """_summary_
 
@@ -631,6 +703,9 @@ class Reinforcement_DeepLearning:
             next_states (np.array): _description_
             learning_rate (float): _description_
             discount_factor (float): _description_
+            validation_split(float): fraction of data for validation
+            training_epoch (int): training epoch
+            training_fit_log (str): training fit log
 
         Returns:
             DeepAgent: _description_
@@ -638,6 +713,16 @@ class Reinforcement_DeepLearning:
 
         current_qs_list = main.predict_batch(current_states)
         future_qs_list = target.predict_batch(next_states)
+
+        callbacks = None
+
+        if training_fit_log is not None:
+            #Tensorboard
+            tensorboard_callback = tf.keras.callbacks.TensorBoard(
+            log_dir=training_fit_log, 
+            histogram_freq=1)
+            callbacks = [tensorboard_callback]
+        
 
         X = []
         Y = []
@@ -652,5 +737,12 @@ class Reinforcement_DeepLearning:
             )
             X.append(state)
             Y.append(current_qs)
-        main.model.fit(np.array(X), np.array(Y), batch_size=len(X), verbose=0)
+        logger.info(f"fit model validation_split{validation_split} training_fit_log{training_fit_log}")
+        main.model.fit(
+            np.array(X), np.array(Y), 
+            batch_size=len(X), 
+            epochs=training_epoch, 
+            validation_split=validation_split,
+            callbacks=callbacks,
+            verbose=0)
         return main
