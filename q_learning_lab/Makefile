@@ -93,8 +93,6 @@ setup_env:
 create_container_image:
 	sh scripts/container/build_image.sh
 
-create_container_image_slim:
-	sh scripts/container/build_image_slim.sh
 
 
 training: export PYTHONPATH=$(shell pwd)/src
@@ -160,8 +158,8 @@ training_container:
 	mkdir -p /tmp/output/log
 	mkdir -p /tmp/output/batch_run/
 	docker run -it --rm -v ~/sandbox/algo_trading/crypto_market_data/data:/var/task/data \
-			-v $(pwd)/scripts:/var/task/workspaces/scripts \
-			-v $(pwd)/_static:/var/task/workspaces/_static \
+			-v $(shell pwd)/scripts:/var/task/workspaces/scripts \
+			-v $(shell pwd)/_static:/var/task/workspaces/_static \
 			-v /tmp/output/log:/var/task/workspaces/log \
 			-v /tmp/output/batch_run/:/tmp/output/batch_run \
 			-e LOG_FILE=/var/task/workspaces/log/info.log \

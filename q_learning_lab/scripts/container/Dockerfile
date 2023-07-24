@@ -62,7 +62,6 @@ ARG PRIVATE_CONDA_CHANNEL
 WORKDIR $RUN_DIR
 # COPY requirements.txt and modify to RUN_USER as owner
 COPY --chown=${RUN_USER}:${RUN_USER} requirements-linux-${ARCH}.txt ${RUN_DIR}/requirements-linux-${ARCH}.txt
-#COPY --chown=${RUN_USER}:${RUN_USER} scripts/.secret/conda_credential /tmp/conda_credential
 
 # Install requirements
 RUN conda config --add channels ${PRIVATE_CONDA_CHANNEL}
@@ -72,7 +71,7 @@ RUN mamba create --copy -p $CONDA_DIR/env --file requirements-linux-${ARCH}.txt 
 FROM base as s3fs
 RUN apt -y install s3fs
 
-FROM s3fs as dev
+FROM s3fs as app
 ARG RUN_DIR
 ARG RUN_USER
 ARG ARCH
@@ -80,10 +79,28 @@ ENV CONDA_DIR=/var/conda
 ENV PATH=$CONDA_DIR/env/bin:$PATH
 ENV LD_LIBRARY_PATH=$CONDA_DIR/env/lib:$LD_LIBRARY_PATH
 
-COPY --chown=${RUN_USER}:${RUN_USER} --from=install ${CONDA_DIR}/env ${CONDA_DIR}/env
 COPY --chown=${RUN_USER}:${RUN_USER} src/q_learning_lab ${RUN_DIR}/q_learning_lab
 COPY --chown=${RUN_USER}:${RUN_USER} scripts/config/*.* ${RUN_DIR}/config/samples/
 COPY --chown=${RUN_USER}:${RUN_USER} scripts/container/mount_s3fs.sh ${RUN_DIR}/mount_s3fs.sh
+COPY --chown=${RUN_USER}:${RUN_USER} scripts/execute_s3_training.sh ${RUN_DIR}/execute_s3_training.sh
 ENV PYTHONPATH="${PYTHONPATH}:${RUN_DIR}"
 RUN mkdir -p ${RUN_DIR}/workspaces
 WORKDIR ${RUN_DIR}/workspaces
+
+FROM app as dev
+ARG RUN_USER
+COPY --chown=${RUN_USER}:${RUN_USER} --from=install ${CONDA_DIR}/env ${CONDA_DIR}/env
+
+
+FROM install as install_jupyter
+ARG RUN_DIR
+ARG RUN_USER
+ARG ARCH
+ARG PRIVATE_CONDA_CHANNEL
+
+COPY --chown=${RUN_USER}:${RUN_USER} requirements_jupyter.txt ${RUN_DIR}/requirements_jupyter.txt
+RUN mamba create --copy -p $CONDA_DIR/env --file requirements_jupyter.txt && conda clean -afy
+
+FROM app as jupyter
+ARG RUN_USER
+COPY --chown=${RUN_USER}:${RUN_USER} --from=install_jupyter ${CONDA_DIR}/env ${CONDA_DIR}/env
