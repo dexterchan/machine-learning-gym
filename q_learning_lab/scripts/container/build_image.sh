@@ -1,6 +1,6 @@
 #!/bin/bash
 ARCH=$(uname -m)
-VERSION=0.1.1
+VERSION=0.1.2
 if [ -z "$PRIVATE_CONDA_CHANNEL" ]; then
 PRIVATE_CONDA_CHANNEL=$(cat scripts/.secret/conda_credential)
 fi

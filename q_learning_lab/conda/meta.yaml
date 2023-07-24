@@ -1,6 +1,6 @@
 package:
   name: "q_learning_lab"
-  version: '0.1.1'
+  version: '0.1.2'
 about:
   summary: "This is deep q learning lab Python library"
 source:
@@ -23,4 +23,4 @@ requirements:
     - seaborn==0.12.2
     - tensorflow>=2.11.1
     - tradesignal_mtm_runner>=0.2.0
-    - cryptomarketdata>=0.1.1
+    - cryptomarketdata>=0.1.2
