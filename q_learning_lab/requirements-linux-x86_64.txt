@@ -11,3 +11,4 @@ tensorflow>=2.11.1
 tradesignal_mtm_runner>=0.3.1
 cryptomarketdata>=0.1.1
 crypto_feature_preprocess>=0.2.2
+libarchive

@@ -63,6 +63,7 @@
         "gamma": 0.9,
         "epsilon": 0.1,
         "savefig_folder": "/var/task/run/agent/_static/img/test/",
+        "save_training_log_folder": "/var/task/run/agent/_static/log/test/",
         "savemodel_folder": "/var/task/run/agent/_static/model/test/",
         "start_epsilon": 1.0,
         "min_epsilon": 0.05,

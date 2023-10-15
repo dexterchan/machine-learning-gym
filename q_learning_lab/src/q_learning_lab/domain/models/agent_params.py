@@ -7,6 +7,7 @@ class Agent_Params(NamedTuple):
     gamma: float  # Discounting rate
     epsilon: float  # Exploration probability
     savefig_folder: Path  # Root folder where plots are saved
+    save_training_log_folder: Path  # Root folder where training logs are saved
     savemodel_folder: Path  # Root folder where models are saved
     save_best_only: bool = True  # support early stopping and save best model only
     start_epsilon: float = 1.0  # Starting exploration probability

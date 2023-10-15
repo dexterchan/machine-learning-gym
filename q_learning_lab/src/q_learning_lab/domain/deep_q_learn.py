@@ -450,9 +450,7 @@ class Reinforcement_DeepLearning:
     
     @classmethod
     def create_model_path_fit_log_dir(cls, agent_params:Agent_Params, model_name:str, run_id:str, episode:int) -> str:
-        path_str:str = cls.create_model_path_root(
-            agent_params=agent_params, model_name=model_name, run_id=run_id
-        )
+        path_str:str = agent_params.save_training_log_folder
         log_dir = f'logs/fit/epoch{episode}-{datetime.now().strftime("%Y%m%d-%H%M%S")}'
 
         return os.path.join(path_str, log_dir)

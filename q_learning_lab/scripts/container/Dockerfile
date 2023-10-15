@@ -52,6 +52,7 @@ RUN chown -R ${APPUSER}:${APPUSER} $RUN_DIR
 USER ${APPUSER}
 RUN conda config --add channels conda-forge
 RUN conda install mamba -c conda-forge -y
+RUN conda install libarchive -n base -c conda-forge
 
 FROM conda_install as install
 ARG RUN_DIR
