@@ -91,7 +91,8 @@ setup_env:
 	#python3 -m pip install -r requirements_dev.txt
 
 create_container_image:
-	sh scripts/container/build_image.sh
+	sh scripts/container/build_image.sh dev
+	sh scripts/container/build_image.sh jupyter
 
 
 

@@ -1,0 +1,110 @@
+{
+    "env": {
+        "total_episodes": 1000,
+        "n_max_steps": 3000,
+        "episode_batch": 20,
+        "batch_mode": true
+    },
+    "data_config": {
+        "exchange": "kraken",
+        "symbol": "ETHUSD",
+        "input_data_dir": "${DATA_DIR}",
+        "start_date_ymd": "20200101",
+        "end_date_ymd": "20230701",
+        "data_length_days": 10,
+        "data_step": 1,
+        "split_ratio": 0.9,
+        "output_data_dir": "/tmp/output/batch_run/$(RANDOM)",
+        "candle_size_minutes": 15
+    },
+    "features": {
+        "OHLCV": {
+            "close": [
+                {
+                    "feature_name": "Log Price movement",
+                    "feature_type": "LOG_PRICE",
+                    "feature_params": {
+                        "dimension": 10,
+                        "normalize_value": 0.02
+                    }
+                },
+                {
+                    "feature_name": "SMA Cross indicator",
+                    "feature_type": "SMA_CROSS",
+                    "feature_params": {
+                        "dimension": 5,
+                        "sma_window_1": 10,
+                        "sma_window_2": 50
+                    }
+                },
+                {
+                    "feature_name": "RSI indicator",
+                    "feature_type": "RSI",
+                    "feature_params": {
+                        "dimension": 5,
+                        "rsi_window": 14
+                    }
+                }
+            ],
+            "volume": [
+                {
+                    "feature_name": "Log Volume movement",
+                    "feature_type": "LOG_PRICE",
+                    "feature_params": {
+                        "dimension": 10,
+                        "normalize_value": 5
+                    }
+                }
+            ]
+        }
+    },
+    "agent": {
+        "learning_rate": 0.001,
+        "gamma": 0.9,
+        "epsilon": 0.1,
+        "savefig_folder": "s3://boar-tradingbot/q-learning/agent_para/img/",
+        "savemodel_folder": "s3://boar-tradingbot/q-learning/agent_para/model/",
+        "start_epsilon": 1.0,
+        "min_epsilon": 0.05,
+        "decay_rate": 0.001,
+        "save_best_only": true,
+        "save_agent_every_n_episode": 10,
+        "every_n_steps_to_train_main_model": 100,
+        "every_m_steps_to_copy_main_weights_to_target_model": 300,
+        "validation_split": 0.2,
+        "dnn_training_epoch": 10
+    },
+    "pnl_config": {
+        "roi": {
+            "7200": 0.0,
+            "1440": 0.02,
+            "720": 0.03,
+            "0": 0.04
+        },
+        "stoploss": -0.02,
+        "fixed_unit_amount": 10,
+        "enable_short_position": false,
+        "max_position_per_symbol": 100,
+        "fee_rate": 0.0026,
+        "laid_back_tax": 0.000002
+    },
+    "model_param": {
+        "meta": {
+            "name": "simple_dnn",
+            "type": "DNN"
+        },
+        "data": {
+            "input_feacture_dim": 30,
+            "first_layer_struct": { "units": 30, "activation": "relu" },
+            "mid_layers_struct": [
+                { "units": 30, "activation": "relu" },
+                { "units": 20, "activation": "relu" },
+                { "units": 20, "activation": "relu" },
+                { "units": 20, "activation": "relu" },
+                { "units": 10, "activation": "relu" }
+            ],
+            "dnn_learning_rate": 0.001,
+            "output_layer_struct": { "units": 3, "activation": "linear" }
+        }
+    }
+}
