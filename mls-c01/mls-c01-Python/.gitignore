@@ -110,3 +110,4 @@ ENV/
 data/
 
 log.txt
+.DS_Store
