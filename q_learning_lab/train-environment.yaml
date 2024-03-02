@@ -1,0 +1,16 @@
+name: testing
+channels:
+  - conda-forge
+  - https://conda.anaconda.org/t/de-e770c67e-2c9a-420d-b191-631da9ec2b03/dexterchan
+dependencies:
+  - gymnasium==0.27.1
+  - pygame>=2.5.0
+  - numpy==1.24.2
+  - matplotlib==3.5.2
+  - cachetools==4.2.2
+  - python-json-logger==2.0.1 #quick solution as json logging
+  - seaborn==0.12.2
+  - tensorflow>=2.11.1 
+  - tradesignal_mtm_runner>=0.3.1 #Dexter's other dependecy in Crypto Market use cases
+  - cryptomarketdata>=0.1.1
+  - crypto_feature_preprocess>=0.2.4

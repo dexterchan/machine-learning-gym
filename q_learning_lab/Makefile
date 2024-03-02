@@ -91,16 +91,22 @@ setup_env:
 	#python3 -m pip install -r requirements_dev.txt
 
 create_container_image:
-	sh scripts/container/build_image.sh
+	sh scripts/container/build_image.sh dev
+	#sh scripts/container/build_image.sh jupyter
 
-create_container_image_slim:
-	sh scripts/container/build_image_slim.sh
-
+build_conda:
+	conda
 
 training: export PYTHONPATH=$(shell pwd)/src
 training: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
 training: 
 	python3 -m q_learning_lab -b intraday-market-v0 -c scripts/config/intraday_config.json -i local_intraday
+
+training_s3: export PYTHONPATH=$(shell pwd)/src
+training_s3: export DATA_DIR=$(shell pwd)/../../crypto_market_data/data
+training_s3: 
+	python3 -m q_learning_lab -b intraday-market-v0 -c scripts/config/intraday_config_s3bucket.json -i local_intraday
+
 
 training_local: export PYTHONPATH=$(shell pwd)/src
 training_local: export DATA_DIR=$(shell pwd)/data
@@ -160,8 +166,8 @@ training_container:
 	mkdir -p /tmp/output/log
 	mkdir -p /tmp/output/batch_run/
 	docker run -it --rm -v ~/sandbox/algo_trading/crypto_market_data/data:/var/task/data \
-			-v $(pwd)/scripts:/var/task/workspaces/scripts \
-			-v $(pwd)/_static:/var/task/workspaces/_static \
+			-v $(shell pwd)/scripts:/var/task/workspaces/scripts \
+			-v $(shell pwd)/_static:/var/task/workspaces/_static \
 			-v /tmp/output/log:/var/task/workspaces/log \
 			-v /tmp/output/batch_run/:/tmp/output/batch_run \
 			-e LOG_FILE=/var/task/workspaces/log/info.log \

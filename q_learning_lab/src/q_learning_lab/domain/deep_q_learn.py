@@ -15,6 +15,12 @@ import json
 import os
 from .models.env_params import BaseEnv_Params
 from .models.agent_params import Agent_Params
+import tempfile
+import zipfile
+import boto3
+import shutil
+from urllib.parse import urlparse
+
 
 from ..utility.logging import get_logger
 
@@ -44,7 +50,8 @@ class SequentialStructure(NamedTuple):
     loss_function: LossFunctionWrapper
     optimizer: keras.optimizers.Optimizer
 
-
+S3_PATH_PREFIX:str = "s3://"
+MODEL_DUMP_NAME:str = "MODEL_DUMP"
 class DeepAgent:
     def __init__(
         self,
@@ -71,6 +78,10 @@ class DeepAgent:
     @property
     def model(self) -> keras.Model:
         return self._model
+    
+    @classmethod
+    def is_s3_path(cls, path:str) -> bool:
+        return path.startswith(S3_PATH_PREFIX)
 
     def save_agent(
         self, path: str, episode: int, 
@@ -92,20 +103,50 @@ class DeepAgent:
             total_rewards_history (list[float]): total rewards history
             eval_rewards_history (list[dict]): evaluation rewards history
         """
-        tensorflow_model_path = path + ".tfm"
-        agent_path = path + ".json"
-        self._model.save(tensorflow_model_path)
-        model_dict: dict = {
-            "episode": episode,
-            "learning_rate": self.learning_rate,
-            "best_measure": best_measure,
-            "discounting_factor": self.discounting_factor,
-            "epsilon": epsilon,
-            "total_rewards_history": total_rewards_history,
-            "eval_rewards_history": eval_rewards_history,
-        }
-        with open(agent_path, "w") as f:
-            json.dump(model_dict, f)
+
+        #Load the temp folder
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Save the model into temp folder
+            tensorflow_model_path = temp_dir
+            self._model.save(tensorflow_model_path)
+            self._model.save("/tmp/def")
+            # Save the agent parameters into temp folder
+            agent_path = os.path.join(temp_dir, f"{MODEL_DUMP_NAME}.json")
+            model_dict: dict = {
+                "episode": episode,
+                "learning_rate": self.learning_rate,
+                "best_measure": best_measure,
+                "discounting_factor": self.discounting_factor,
+                "epsilon": epsilon,
+                "total_rewards_history": total_rewards_history,
+                "eval_rewards_history": eval_rewards_history,
+            }
+            with open(agent_path, "w") as f:
+                json.dump(model_dict, f)
+            
+            #Zip the temp folder
+            zip_file_path = os.path.join(temp_dir, f"{MODEL_DUMP_NAME}.zip")
+            archive_file_path = os.path.join(temp_dir, f"{MODEL_DUMP_NAME}")
+            shutil.make_archive(archive_file_path, "zip", temp_dir )
+            logger.info(f"Zip file created: {zip_file_path}")
+            
+            #Check if the path is S3 path
+            if DeepAgent.is_s3_path(path=path):#path.startswith(S3_PATH_PREFIX):
+                #Upload to S3
+                s3_client = boto3.client('s3')
+                #Get s3 bucket name from path
+                o = urlparse(path, allow_fragments=False)
+                logger.info(f"Upload to S3 bucket: {o.netloc} path: {os.path.join(o.path,os.path.basename(zip_file_path))}")
+                
+                with open(zip_file_path, "rb") as f:
+                    s3_client.upload_fileobj(f, o.netloc, os.path.join(o.path[1:] if o.path[0]=="/" else o.path, os.path.basename(zip_file_path)))
+
+            else:
+                #Move the zip file to the path
+                #mkdir of the path if not exists
+                os.makedirs(path, exist_ok=True)
+                file_name = os.path.basename(zip_file_path)
+                os.replace(zip_file_path, os.path.join(path ,file_name))
         pass
 
     @classmethod
@@ -121,44 +162,79 @@ class DeepAgent:
         Returns:    
             tuple[DeepAgent, dict]: agent, last run parameters
         """
-        tensorflow_model_path = path + ".tfm"
-        agent_path = path + ".json"
-        _sequential_model = keras.models.load_model(tensorflow_model_path)
-        with open(agent_path, "r") as f:
-            model_dict: dict = json.load(f)
-        learning_rate = model_dict["learning_rate"]
-        discounting_factor = model_dict["discounting_factor"]
-        instance = cls(
-            structure=None,
-            learning_rate=learning_rate,
-            discount_factor=discounting_factor,
-        )
-        instance._model = _sequential_model
-        return instance, model_dict
+        #Load the temp folder
+        
+        if not cls.check_agent_loadable_from_path(path=path):
+            raise Exception(f"Agent not loadable from path: {path}")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            zip_file_path = os.path.join(path, f"{MODEL_DUMP_NAME}.zip")
+            #Create raw directory
+            os.makedirs(os.path.join(temp_dir, "raw"), exist_ok=True)
+            temp_file_path = os.path.join(temp_dir, "raw", f"{MODEL_DUMP_NAME}.zip")
+
+            #Check if the path is S3 path
+            if cls.is_s3_path(path=zip_file_path):
+                #Download from S3
+                s3 = boto3.client('s3')
+                o = urlparse(zip_file_path, allow_fragments=False)
+                logger.info(f"Download from S3 bucket: {o.netloc} path: {o.path}")
+                s3.download_file(o.netloc, o.path[1:] if o.path[0]=="/" else o.path, temp_file_path)
+            else:
+                #Copy the zip file to temp folder
+                logger.info(f"Copy from {zip_file_path} to {temp_file_path}")
+                shutil.copy(zip_file_path, temp_file_path)
+            #Extract the zip file to temp folder
+            shutil.unpack_archive(temp_file_path, temp_dir, "zip")
+            
+            #Load the model from temp folder    
+            tensorflow_model_path = temp_dir
+            agent_path =os.path.join(temp_dir , f"{MODEL_DUMP_NAME}.json")
+            _sequential_model = keras.models.load_model(tensorflow_model_path)
+            with open(agent_path, "r") as f:
+                model_dict: dict = json.load(f)
+            learning_rate = model_dict["learning_rate"]
+            discounting_factor = model_dict["discounting_factor"]
+
+            instance = cls(
+                structure=None,
+                learning_rate=learning_rate,
+                discount_factor=discounting_factor,
+            )
+            instance._model = _sequential_model
+            return instance, model_dict
+        pass
 
     @classmethod
     def check_agent_loadable_from_path(cls, path:str) -> bool:
         """
         Check if the agent loadable from path
-        it will check two file paths:
-        - path + ".tfm" : tensorflow model path
-        - path + ".json" : agent parameters in a json file
+        it will check file path exists:
+        - path + "zip"
+        
         Args:
             path (str): file path
         
         Returns:
             bool: boolean - true likely loadable; false not loadable
         """
-        tensorflow_model_path = path + ".tfm"
-        agent_path = path + ".json"
-
-        if not os.path.exists(tensorflow_model_path) or not os.path.isdir(tensorflow_model_path):
-            logger.warning(f"Tensorflow model path {tensorflow_model_path} not found")
-            return False
         
-        if not os.path.exists(agent_path) or not os.path.isfile(agent_path):
-            logger.warning(f"Tensorflow model training meta data not exists: {agent_path}")
-            return False
+        agent_path = os.path.join( path,f"{MODEL_DUMP_NAME}.zip")
+        if path.startswith(S3_PATH_PREFIX):
+            #Check if the path is S3 path
+            s3 = boto3.client('s3')
+            try:
+                o = urlparse(agent_path, allow_fragments=False)
+                logger.info(f"Check object in S3 bucket: {o.netloc} path: {o.path}")
+                
+                s3.head_object(Bucket=o.netloc, Key=o.path[1:] if o.path[0]=="/" else o.path)
+            except:
+                logger.warning(f"Tensorflow model training meta data not exists: {agent_path}")
+                return False
+        else:
+            if not os.path.exists(agent_path) or not os.path.isfile(agent_path):
+                logger.warning(f"Tensorflow model training meta data not exists: {agent_path}")
+                return False
         return True
 
     def _create_sequential_model(
@@ -374,9 +450,7 @@ class Reinforcement_DeepLearning:
     
     @classmethod
     def create_model_path_fit_log_dir(cls, agent_params:Agent_Params, model_name:str, run_id:str, episode:int) -> str:
-        path_str:str = cls.create_model_path_root(
-            agent_params=agent_params, model_name=model_name, run_id=run_id
-        )
+        path_str:str = agent_params.save_training_log_folder
         log_dir = f'logs/fit/epoch{episode}-{datetime.now().strftime("%Y%m%d-%H%M%S")}'
 
         return os.path.join(path_str, log_dir)

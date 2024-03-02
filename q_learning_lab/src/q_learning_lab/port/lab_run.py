@@ -170,11 +170,12 @@ def execute_lab_training(lab_name: str, lab_config: dict, is_verbose: bool, forc
             )
         pass
     #fork end here
-    fork_process_runner = ForkProcessRunner()
-    for i in range(n_episode_batches):
-        logger.info(f"Execute fork batch {i} start")
-        fork_process_runner.fork_run(_fork_training_process)
-        logger.info(f"Execute fork batch {i} end")
+    # fork_process_runner = ForkProcessRunner()
+    # for i in range(n_episode_batches):
+    #     logger.info(f"Execute fork batch {i} start")
+    #     fork_process_runner.fork_run(_fork_training_process)
+    #     logger.info(f"Execute fork batch {i} end")
+    _fork_training_process()
     #wait until all child process finish
     
     pass
